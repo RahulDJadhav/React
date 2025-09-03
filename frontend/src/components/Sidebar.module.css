@@ -1,0 +1,18 @@
+.sidebarItem {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 5px;
+  text-align: center;
+  max-width: 250px;
+  margin: 20px auto;
+  position: relative;
+
+}
+
+.sidebarItem:hover {
+  background-color: #e6e5fa !important;
+  border-radius: 8px !important;
+  color: #4d46e1 !important;
+
+}

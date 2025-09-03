@@ -1,0 +1,47 @@
+.actionBtn {
+  width: 100%;
+  padding: 5px !important;
+  background-color: #fff !important;
+}
+
+.actionBtn:hover {
+  background-color: #e6e5fa !important;
+  border-radius: 8px !important;
+  color: #4d46e1 !important;
+  cursor: pointer !important;
+  width: 100% !important;
+  padding: 5px !important;
+}
+
+.dropdownItemDiv {
+  right: 0;
+  zIndex: 10;
+  width: 120px;
+  position: absolute;
+  color: #4d46e1;
+  background-color: #fff;
+  border-radius: 4px;
+  padding: 5px;
+}
+
+.todoList {
+  border: 2px solid #8d86bc;
+  border-radius: 5px;
+  margin: 10px;
+  padding: 10px;
+  background-color: #fff;
+  /* Add these lines to fix height and handle overflow */
+  height: 120px;
+  /* Adjust this value as needed */
+  overflow-y: auto;
+  /* Adds a vertical scrollbar if content overflows */
+  flex-shrink: 0;
+  /* Prevents cards from shrinking in a flex container */
+}
+
+.checkbox {
+  border: 1px solid #8d86bc;
+  border-radius: 5px;
+  padding: 5px;
+  background-color: #fff;
+}

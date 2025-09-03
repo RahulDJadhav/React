@@ -1,0 +1,33 @@
+.body {
+  background-color: #f6f4ff !important;
+}
+
+.btn-primary-taskly {
+  background-color: #4d46e1 !important;
+  border: none !important;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+.btn-primary-taskly:hover {
+  background-color: #3b35be !important;
+  /* Slightly darker on hover */
+  transform: translateY(-1px);
+  /* Subtle lift */
+}
+
+.taskSuccess {
+  background-color: #d4edda;
+  /* Green for success */
+  color: #155724;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  text-align: center;
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.custom-datepicker {
+  display: block !important;
+  width: 100% !important;
+}
