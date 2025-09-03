@@ -1,0 +1,33 @@
+.todoList {
+  /* border: 2px solid #8d86bc; */
+  border-radius: 8px;
+  margin: 10px;
+  padding: 15px;
+  background-color: #ffffff;
+  /* Ensure white background */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  /* Stronger, softer shadow */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.todoList:hover {
+  transform: translateY(-3px);
+  /* Lift effect on hover */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.checkbox {
+  border: 1px solid #c0c0c0;
+  /* Softer border */
+  border-radius: 5px;
+  padding: 5px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.checkbox:checked {
+  background-color: #4d46e1;
+  /* Accent color when checked */
+  border-color: #4d46e1;
+}
