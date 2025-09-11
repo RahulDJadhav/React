@@ -145,3 +145,110 @@ Successful responses include a message string (e.g., "updated"). After mutation,
 - Unit tests (React Testing Library) and API tests
 - Migrate backend to Node/Express or Laravel as optional paths
 
+## Live Demo Script (10–12 minutes)
+
+- Prep (before you start sharing)
+  - Start Apache + MySQL in XAMPP.
+  - Open the backend test URL in a tab: `http://localhost/React/taskly/backend/getTasks.php?user_id=1` (to prove API works).
+  - In another terminal: `cd C:\xampp\htdocs\React\taskly\frontend && npm start`.
+  - App URL ready: `http://localhost:3000`.
+
+### 1) Introduce the app (1 min)
+- “Taskly is a React + PHP/MySQL task manager.”
+- “Frontend is React with Bootstrap; backend is PHP endpoints on XAMPP; MySQL stores users and tasks.”
+- “You’ll see login, create task, inline status updates, due reminders, and an admin view.”
+
+### 2) Login and data fetch (1 min)
+- Navigate to `http://localhost:3000`.
+- Log in with an existing account (or sign up quickly if needed).
+- Say: “On login, the app fetches tasks via `getTasks.php?user_id=<id>`; this drives the UI.”
+
+Expected: Task list appears. If tasks due today/tomorrow exist, a due reminder modal opens once.
+
+### 3) Due reminder (30 sec)
+- If the modal appears: “This shows tasks due today or tomorrow; it’s presented once per login.”
+- Click Dismiss. Note: “It won’t reappear until next login.”
+
+If no due tasks: say “If tasks were due today/tomorrow, you’d see the reminder here.”
+
+### 4) Create a task (2 min)
+- Click “Add” (or your Create button).
+- In the modal:
+  - Title: “Prepare sprint review”
+  - Description: “Slides + live demo”
+  - Start Date: pick today
+  - Due Date: pick tomorrow
+  - Priority: High
+  - Status: Open
+- Submit.
+
+Expected: New card appears with correct dates (no off-by-one). Say: “Dates are stored/displayed as local yyyy-MM-dd to avoid timezone shifts.”
+
+Optional: Show network tab request to `addTask.php`, then `getTasks.php` re-fetch.
+
+### 5) Inline status change (1.5 min)
+- On the new card, click the status badge (e.g., “Open”).
+- The click menu opens; pick “In Progress”.
+
+Expected: Status updates; list re-fetches. Say: “This hits `updateStatus.php` with `{ status, is_done }`. If I choose Completed, it also sets `is_done = 1`.”
+
+- Click again → choose “Completed”. Checkbox becomes checked.
+
+### 6) Done/Open checkbox (30 sec)
+- Uncheck the Done checkbox.
+
+Expected: Status flips back to “Open” via `updateStatus.php`. Mention confirmation prompts if any.
+
+### 7) Flags: Important & Favorite (30 sec)
+- Click the star icon (Important) → toggles color.
+- Click the heart icon (Favorite) → toggles color.
+
+Say: “These call `toggleImportant.php` and `toggleFavorite.php` and then re-fetch.”
+
+### 8) Filters (45 sec)
+- Use the sidebar filters:
+  - “Important” → shows important tasks
+  - “Favorites” → favorites
+  - “Completed” → tasks with `is_done=1`
+  - “Due Soon” → tasks due within 7 days
+
+Say: “Filtering is client-side; ‘Due Soon’ checks the date range.”
+
+### 9) Admin panel (1.5 min)
+- Open Admin panel (button in header).
+- Show:
+  - Users list (top)
+  - Tasks table with pagination
+  - Filter by priority
+  - Type in search field and pause → debounce triggers `getTasksAdmin.php?q=...`
+
+Say: “Admin endpoint joins `todotasks` and `users` for management views.”
+
+### 10) Quick architecture slide (talk track, 1 min)
+- “Frontend React SPA, calls PHP endpoints.”
+- “PHP talks to MySQL and returns JSON.”
+- “State flows: after any mutation, we re-fetch tasks to keep UI in sync.”
+- “Why React: component model, ecosystem (datepicker, Bootstrap), SPA UX, quick iteration vs jQuery/Angular overhead.”
+
+### 11) Troubleshooting talking points (30 sec)
+- If errors connecting: confirm API base is `${window.location.origin}/React/taskly/backend/`.
+- If CRA fails: use React 18 (`npm i react@18.3.1 react-dom@18.3.1`).
+- If dates slip: confirm local date formatter is used (CreateTaskForm).
+
+### 12) Close (15 sec)
+- “Taskly demonstrates a clean split: React UI, PHP+MySQL backend. Inline UX (status menu, flags), correct date handling, and a login-driven due reminder.”
+
+#### Optional deep-dive (if asked)
+- Show `src/App.jsx` handlers: `handleChangeStatus`, `handleDoneTask`.
+- Show `backend/updateStatus.php` parameter contract.
+- Show `CreateTaskForm.jsx` local date formatting (`yyyy-MM-dd`).
+
+#### Cheat sheet for endpoints (show if asked)
+- Read: `GET getTasks.php?user_id=<id>`
+- Create: `POST addTask.php`
+- Update: `POST updateTask.php`
+- Status: `POST updateStatus.php`
+- Delete: `POST deleteTask.php`
+- Flags: `POST toggleFavorite.php`, `POST toggleImportant.php`
+- Admin: `GET getTasksAdmin.php?[status]&[user_id]&[q]`
+
