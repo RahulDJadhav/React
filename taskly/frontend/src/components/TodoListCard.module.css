@@ -31,3 +31,41 @@
   /* Accent color when checked */
   border-color: #4d46e1;
 }
+
+.statusDropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.statusToggle {
+  cursor: pointer;
+}
+
+.statusMenu {
+  display: none;
+  position: absolute;
+  right: 0;
+  z-index: 1000;
+  min-width: 160px;
+  padding: 0.5rem 0;
+  margin-top: 0.25rem;
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, .15);
+  border-radius: 0.25rem;
+  box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15);
+}
+
+.statusMenuItem {
+  padding: 0.25rem 1rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.statusMenuItem:hover {
+  background-color: #f8f9fa;
+}
+
+/* Show when open via click */
+.statusDropdown.open .statusMenu {
+  display: block;
+}

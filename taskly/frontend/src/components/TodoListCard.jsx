@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styles from './TodoListCard.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar as solidStar, faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons';
@@ -6,7 +6,7 @@ import { faStar as regularStar, faHeart as regularHeart } from '@fortawesome/fre
 import TaskOptions from './TaskOptions';
 import TaskTextToggle from './TaskTextToggle';
 
-const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onToggleImportant }) => {
+const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onToggleImportant, onChangeStatus }) => {
 
   // function to calculate days left
   const calculateDaysLeft = (dueDate) => {
@@ -24,6 +24,32 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
     if (diffDays === 0) return "Due today";
     return `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) > 1 ? 's' : ''}`;
   };
+
+  const STATUS_OPTIONS = ['Open', 'In Progress', 'On Hold', 'Cancelled', 'Completed'];
+
+  // Track open status menu per task id
+  const [openMenuById, setOpenMenuById] = useState({});
+  const containerRefs = useRef({});
+
+  const toggleMenu = (taskId) => {
+    setOpenMenuById(prev => ({ ...prev, [taskId]: !prev[taskId] }));
+  };
+  const closeMenu = (taskId) => {
+    setOpenMenuById(prev => ({ ...prev, [taskId]: false }));
+  };
+
+  useEffect(() => {
+    const onDocClick = (e) => {
+      // Close any menu if clicked outside its container
+      Object.entries(containerRefs.current).forEach(([id, el]) => {
+        if (el && !el.contains(e.target)) {
+          setOpenMenuById(prev => (prev[id] ? { ...prev, [id]: false } : prev));
+        }
+      });
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
 
   if (data.length === 0) {
     return (
@@ -54,7 +80,7 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
                 type="checkbox"
                 data-bs-toggle="tooltip"
                 data-bs-placement="top"
-                title={task.is_done ? "Mark as Open" : "Mark as Done"}
+                title={task.is_done ? "Mark as Open" : "Mark as Completed"}
                 id={`check-${task.id}`}
                 checked={!!task.is_done}
                 onChange={() => onDone && onDone(task.id, task.is_done)}
@@ -74,42 +100,64 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
             </div>
           </div>
 
-          <div className="col-md-10 d-flex align-items-center">
-            <div className="col-md-3">
-              <span className="fw-semibold"><TaskTextToggle text={task.title} maxLength={20} /></span>
-            </div>
-            <div className="col-md-2">
-              <span className="text-muted small">{task.due_date}</span>
-              <br />
-              <span
-                className={`fw-semibold small 
+          <div className="col-md-2 d-flex align-items-center">
+            <span className="fw-semibold"><TaskTextToggle text={task.title} maxLength={20} /></span>
+          </div>
+          <div className="col-md-3 d-flex align-items-center text-muted small"><TaskTextToggle text={task.description} maxLength={40} /></div>
+          <div className="col-md-2">
+            <span className="text-muted small">{task.due_date}</span>
+            <br />
+            <span
+              className={`fw-semibold small 
                   ${calculateDaysLeft(task.due_date).includes("Overdue") ? "text-danger" : "text-success"}`}
+            >
+              {calculateDaysLeft(task.due_date)}
+            </span>
+          </div>
+          <div className="col-md-2 text-center">
+            <div
+              className={styles.statusDropdown}
+              ref={(el) => { containerRefs.current[task.id] = el; }}
+            >
+              <span
+                className={`badge bg-light text-dark ${styles.statusToggle}`}
+                onClick={() => toggleMenu(task.id)}
               >
-                {calculateDaysLeft(task.due_date)}
+                {task.status || 'Open'}
               </span>
-            </div>
-            <div className="col-md-3">
-              <span className="text-muted small"><TaskTextToggle text={task.description} maxLength={20} /></span>
-            </div>
-            <div className="col-md-1 text-center">
-              <span className={`badge 
-                ${task.priority === 'Urgent' ? 'bg-danger'
-                  : task.priority === 'High' ? 'bg-warning'
-                    : task.priority === 'Medium' ? 'bg-success'
-                      : 'bg-secondary'
-                } `}>{task.priority}</span>
-            </div>
-            <div className="col-md-2 text-center">
-              <span className="text-muted small">{task.status}</span>
+              <div
+                className={styles.statusMenu}
+                style={{ display: openMenuById[task.id] ? 'block' : 'none' }}
+              >
+                {STATUS_OPTIONS.map(opt => (
+                  <div
+                    key={opt}
+                    className={styles.statusMenuItem}
+                    onClick={() => { onChangeStatus && onChangeStatus(task, opt); closeMenu(task.id); }}
+                  >
+                    {opt}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="col-md-1 d-flex justify-content-end">
-            <TaskOptions
-              onEdit={() => onEdit && onEdit(task)}
-              onDelete={() => onDelete && onDelete(task.id)}
-              onDone={() => onDone && onDone(task.id)}
-            />
+          <div className="col-md-1  d-flex text-center justify-content-center">
+            <span className={`badge 
+              ${task.priority === 'Urgent' ? 'bg-danger'
+                : task.priority === 'High' ? 'bg-warning'
+                  : task.priority === 'Medium' ? 'bg-success'
+                    : 'bg-secondary'
+              } `}>{task.priority}</span>
+
+          </div>
+          <div className="col-md-1 text-center">
+            <div className="ms-3">
+              <TaskOptions
+                onEdit={() => onEdit && onEdit(task)}
+                onDelete={() => onDelete && onDelete(task.id)}
+              />
+            </div>
           </div>
         </div>
       ))}

@@ -37,10 +37,18 @@ const CreateTaskForm = forwardRef(({ onSubmit, onUpdate, onEdit }, ref) => {
   const [statuses] = useState(STATUS_OPTIONS);
   const [dropdownsLoaded, setDropdownsLoaded] = useState(false);
 
-
   useEffect(() => {
     setDropdownsLoaded(true);
   }, []);
+
+  // Helper: format Date -> 'yyyy-MM-dd' in local time (no timezone shift)
+  const formatDateLocal = (dateObj) => {
+    if (!(dateObj instanceof Date)) return '';
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
 
   //  Open modal and populate task if provided
   useImperativeHandle(ref, () => ({
@@ -104,8 +112,8 @@ const CreateTaskForm = forwardRef(({ onSubmit, onUpdate, onEdit }, ref) => {
     const taskData = {
       id: editingId || Date.now(),
       title: taskTitle,
-      startDate: startDate instanceof Date ? startDate.toISOString().split('T')[0] : '',
-      dueDate: dueDate instanceof Date ? dueDate.toISOString().split('T')[0] : '',
+      startDate: startDate ? formatDateLocal(startDate) : '',
+      dueDate: dueDate ? formatDateLocal(dueDate) : '',
       description,
       priority,
       status,
@@ -130,8 +138,6 @@ const CreateTaskForm = forwardRef(({ onSubmit, onUpdate, onEdit }, ref) => {
     setStatus('');
     setAssignee('');
   };
-
-
 
   return (
     <div className="modal fade" ref={modalRef} tabIndex="-1" aria-hidden="true">

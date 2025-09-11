@@ -10,12 +10,13 @@ const MainContent = ({
   onToggleFavorite,
   onToggleImportant,
   activeFilter,     // keep this
+  onChangeStatus,
 }) => {
   const filteredTasks = tasks.filter(task => {
-    if (activeFilter !== 'Done' && !!task.is_done) return false;
+    if (activeFilter !== 'Completed' && !!task.is_done) return false;
 
     if (activeFilter === 'All') return true;
-    if (activeFilter === 'Done') return !!task.is_done;
+    if (activeFilter === 'Completed') return !!task.is_done;
     if (activeFilter === 'Important') return !!task.is_important;
     if (activeFilter === 'Favorites') return !!task.is_favorite;
 
@@ -42,6 +43,8 @@ const MainContent = ({
           onDone={onDone}
           onToggleFavorite={onToggleFavorite}
           onToggleImportant={onToggleImportant}
+          activeFilter={activeFilter}
+          onChangeStatus={onChangeStatus}
         />
       </div>
     </div>

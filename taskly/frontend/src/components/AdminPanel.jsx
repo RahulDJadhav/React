@@ -230,9 +230,9 @@ export default function AdminPanel({ onClose }) {
                           </span>
                         </td>
                         <td>
-                          {t.is_important && <span className="badge bg-danger me-1">Important</span>}
-                          {t.is_favorite && <span className="badge bg-warning text-dark me-1">★ Fav</span>}
-                          {t.is_done && <span className="badge bg-success">✓ Done</span>}
+                          {t.is_important && <span className="badge bg-danger me-1">★ Imp</span>}
+                          {t.is_favorite && <span className="badge bg-warning text-dark me-1">❤ Fav</span>}
+                          {t.is_done && <span className="badge bg-success">✓ Completed</span>}
                         </td>
                       </tr>
                     ))}

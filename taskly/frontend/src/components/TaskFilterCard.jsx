@@ -6,7 +6,7 @@ import styles from './TaskFilterCard.module.css';
 
 const TaskFilterCard = ({ activeFilter, onFilterChange, taskCounts }) => {
 
-  let taskItems = ["All", "Important", "Favorites", "Done", "Due Soon"];
+  let taskItems = ["All", "Important", "Favorites", "Completed", "Due Soon"];
   // let taskItemCounts = [10, 5, 3, 8, 2];
 
   // Use actual icons instead of string names

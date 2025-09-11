@@ -7,6 +7,7 @@ import CreateTaskForm from './components/CreateTaskForm';
 import './App.css';
 import Login from './components/Login';
 import AdminPanel from './components/AdminPanel';
+import DueSoonModal from './components/DueSoonModal';
 
 
 const App = () => {
@@ -14,6 +15,9 @@ const App = () => {
   const API_BASE = 'http://localhost/taskly/taskly/backend/';
   // tasks: Array holding all todo tasks
   const [tasks, setTasks] = useState([]);
+  const [dueSoonTasks, setDueSoonTasks] = useState([]);
+  const [showDueModal, setShowDueModal] = useState(false);
+  const [hasShownDueModal, setHasShownDueModal] = useState(false);
 
   // editingTask: Holds the task being edited (for the modal).
   const [editingTask, setEditingTask] = useState(null);
@@ -30,6 +34,16 @@ const App = () => {
 
   const [showAdmin, setShowAdmin] = useState(false);
   const isAdmin = localStorage.getItem('userRole') === 'admin';
+
+  // Reset due modal state on login changes
+  useEffect(() => {
+    if (isLoggedIn) {
+      setHasShownDueModal(false);
+    } else {
+      setShowDueModal(false);
+      setHasShownDueModal(false);
+    }
+  }, [isLoggedIn]);
 
   // Fetch tasks for the logged-in user
   useEffect(() => {
@@ -55,6 +69,38 @@ const App = () => {
       setTasks([]);
     }
   }, [isLoggedIn]); // Re-fetch when login status changes
+
+  // Compute and show due-soon modal (today or tomorrow, not done). Only once per login.
+  useEffect(() => {
+    if (!isLoggedIn || hasShownDueModal) {
+      return;
+    }
+    if (!tasks || tasks.length === 0) {
+      setDueSoonTasks([]);
+      setShowDueModal(false);
+      setHasShownDueModal(true); // consume for this login regardless
+      return;
+    }
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+
+    const filtered = tasks.filter(t => {
+      if (!t.due_date) return false;
+      if (Number(t.is_done) === 1) return false;
+      const due = new Date(t.due_date); due.setHours(0, 0, 0, 0);
+      const isToday = due.getTime() === today.getTime();
+      const isTomorrow = due.getTime() === tomorrow.getTime();
+      return isToday || isTomorrow;
+    });
+
+    setDueSoonTasks(filtered);
+    setShowDueModal(filtered.length > 0);
+    setHasShownDueModal(true); // ensure it won't show again until next login
+  }, [tasks, isLoggedIn, hasShownDueModal]);
+
+  const handleDismissDueModal = () => {
+    setShowDueModal(false);
+  };
 
   const handleAddTask = (newTask) => {
     const userId = localStorage.getItem("userId");
@@ -118,15 +164,14 @@ const App = () => {
         },
         body: JSON.stringify({
           ...updatedTask,
-          due_date: updatedTask.dueDate, // Ensure snake_case for backend
-          user_id: userId // Always include user_id
+          user_id: userId
         })
       });
 
       const result = await res.json();
 
       if (result.message && result.message.toLowerCase().includes("success")) {
-        // Refresh task list
+        // Refresh the task list
         const currentUserId = localStorage.getItem("userId");
         const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${currentUserId}`);
         const data = await taskRes.json();
@@ -134,12 +179,11 @@ const App = () => {
         setSuccessMessage("Task updated successfully!");
         setTimeout(() => setSuccessMessage(""), 1000);
       } else {
-        alert("Something went wrong while updating the task.");
+        alert("Something went wrong: " + result.message);
       }
-
     } catch (error) {
-      console.error("Error updating task:", error);
-      alert("Something went wrong.");
+      console.error("Update error:", error);
+      alert("Something went wrong while updating the task.");
     }
   };
 
@@ -151,16 +195,13 @@ const App = () => {
       return;
     }
 
-    const confirmDelete = window.confirm("Are you sure you want to delete this task?");
-    if (!confirmDelete) return;
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
 
     try {
       const res = await fetch(`${API_BASE}deleteTask.php`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id, user_id: userId }), // Always include user_id
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, user_id: userId })
       });
 
       const result = await res.json();
@@ -207,7 +248,7 @@ const App = () => {
     const newStatus = newDoneStatus === 1 ? 'Completed' : 'Open';
 
     const confirmMessage = newDoneStatus === 1
-      ? "Are you sure you want to mark this task as Done?"
+      ? "Are you sure you want to mark this task as Completed?"
       : "Are you sure you want to mark this task as Open?";
 
     if (!window.confirm(confirmMessage)) {
@@ -228,87 +269,107 @@ const App = () => {
         const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${currentUserId}`);
         const data = await taskRes.json();
         setTasks(data);
-
-        setSuccessMessage(
-          newDoneStatus === 1
-            ? "Task marked as Done and Completed successfully!"
-            : "Task reopened and status set to Open."
-        );
-        setTimeout(() => setSuccessMessage(''), 1000);
+        setSuccessMessage("Task status updated successfully!");
+        setTimeout(() => setSuccessMessage(""), 1000);
       } else {
-        alert("Error: " + result.message);
+        alert("Something went wrong: " + result.message);
       }
-    } catch (err) {
-      console.error(err);
-      alert('Failed to update task status');
+    } catch (error) {
+      console.error("Status update error:", error);
+      alert("Something went wrong while updating the status.");
     }
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    localStorage.removeItem("userId");
-    localStorage.removeItem("userName");
-    localStorage.removeItem("userEmail");
-  };
-  const handleToggleImportant = async (id, isCurrentlyImportant) => {
+  // Toggle Favorite
+  const handleToggleFavorite = async (id, currentValue) => {
     const userId = localStorage.getItem("userId");
     if (!userId) {
-      alert("Please log in to update task importance.");
+      alert("Please log in to update favorite status.");
       return;
     }
 
-    const newImportantStatus = isCurrentlyImportant ? 0 : 1;
     try {
-      const res = await fetch(`${API_BASE}toggleImportant.php`, {
+      const res = await fetch(`${API_BASE}toggleFavorite.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, is_important: newImportantStatus, user_id: userId })
+        body: JSON.stringify({ id, user_id: userId, is_favorite: currentValue ? 0 : 1 })
       });
       const result = await res.json();
-      if (res.ok && result.message === 'Important status updated') {
-        // Re-fetch tasks to update UI
+
+      if (result.message && result.message.toLowerCase().includes("updated")) {
         const currentUserId = localStorage.getItem("userId");
         const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${currentUserId}`);
         const data = await taskRes.json();
         setTasks(data);
       }
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
     }
   };
+
+  // Toggle Important
+  const handleToggleImportant = async (id, currentValue) => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      alert("Please log in to update important status.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}toggleImportant.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, user_id: userId, is_important: currentValue ? 0 : 1 })
+      });
+      const result = await res.json();
+
+      if (result.message && result.message.toLowerCase().includes("updated")) {
+        const currentUserId = localStorage.getItem("userId");
+        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${currentUserId}`);
+        const data = await taskRes.json();
+        setTasks(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleFilterChange = (filter) => {
     setActiveFilter(filter);
     // Optional: clear success message when filter changes
     setSuccessMessage('');
   };
 
-  const handleToggleFavorite = async (id, isCurrentlyFavorite) => {
+  // Change status directly from card
+  const handleChangeStatus = async (task, newStatus) => {
     const userId = localStorage.getItem("userId");
     if (!userId) {
-      alert("Please log in to update task favorite status.");
+      alert("Please log in to update task status.");
       return;
     }
 
-    const newFavoriteStatus = isCurrentlyFavorite ? 0 : 1;
+    const newDone = newStatus === 'Completed' ? 1 : 0;
+
     try {
-      const res = await fetch(`${API_BASE}toggleFavorite.php`, {
+      const res = await fetch(`${API_BASE}updateStatus.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, is_favorite: newFavoriteStatus, user_id: userId })
+        body: JSON.stringify({ id: task.id, is_done: newDone, status: newStatus, user_id: userId })
       });
       const result = await res.json();
-      if (res.ok && result.message === 'Favorite status updated') {
-        // Re-fetch tasks to update UI
+      if (result.message && result.message.toLowerCase().includes("updated")) {
         const currentUserId = localStorage.getItem("userId");
         const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${currentUserId}`);
         const data = await taskRes.json();
         setTasks(data);
+      } else {
+        alert("Something went wrong: " + result.message);
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error("Status change error:", error);
+      alert("Something went wrong while changing the status.");
     }
   };
-
 
   // Calculate dynamic counts for TaskFilterCard
 
@@ -332,7 +393,7 @@ const App = () => {
     "All": allTasksCount,
     "Important": importantTasksCount,
     "Favorites": favoritesCount,
-    "Done": doneTasksCount,
+    "Completed": doneTasksCount,
     "Due Soon": dueSoonTasksCount,
   };
 
@@ -362,7 +423,7 @@ const App = () => {
   return (
     <div className="d-flex flex-column body" style={{ minHeight: '100vh' }}>
       {/* Header */}
-      <Header onAddClick={handleOpenCreate} onLogout={handleLogout} tasks={tasks} onOpenAdmin={() => setShowAdmin(true)} />
+      <Header onAddClick={handleOpenCreate} onLogout={() => setIsLoggedIn(false)} tasks={tasks} onOpenAdmin={() => setShowAdmin(true)} />
 
       {/* Body: Sidebar + Content */}
       <div className="d-flex flex-grow-1">
@@ -386,6 +447,9 @@ const App = () => {
                 </div>
 
               )}
+              {showDueModal && (
+                <DueSoonModal tasks={dueSoonTasks} onClose={handleDismissDueModal} />
+              )}
               {isAdmin && showAdmin ? (
                 <AdminPanel onClose={() => setShowAdmin(false)} />
               ) : (
@@ -397,6 +461,7 @@ const App = () => {
                   onToggleFavorite={handleToggleFavorite}
                   onToggleImportant={handleToggleImportant}
                   activeFilter={activeFilter}
+                  onChangeStatus={handleChangeStatus}
                 />
               )}
             </div>
