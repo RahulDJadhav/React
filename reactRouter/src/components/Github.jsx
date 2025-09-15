@@ -1,19 +1,21 @@
 import React, {useEffect, useState} from 'react'
-
+import { useLoaderData } from 'react-router-dom'
 function Github() {
-  const [data, setData] = useState([]);
 
-  useEffect(() => {  
+  const data = useLoaderData()
+  // const [data, setData] = useState([]);
 
-    fetch('https://api.github.com/users/RahulDJadhav')
+  // useEffect(() => {  
 
-      .then(response => response.json())
-      .then(data => {
-        console.log(data);
-        setData(data)
-  })
+  //   fetch('https://api.github.com/users/RahulDJadhav')
+
+  //     .then(response => response.json())
+  //     .then(data => {
+  //       console.log(data);
+  //       setData(data)
+  // })
       
-  }, [])
+  // }, [])
 
   return (
     <>
@@ -28,3 +30,9 @@ function Github() {
 }
 
 export default Github
+
+export const githubInfoLoader = async () => {
+  const response = await fetch('https://api.github.com/users/RahulDJadhav')
+
+  return response.json()
+}
