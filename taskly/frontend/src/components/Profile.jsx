@@ -17,11 +17,35 @@ export default function Profile() {
 
   useEffect(() => {
     const id = localStorage.getItem("userId");
-    const name = localStorage.getItem("userName");
-    const email = localStorage.getItem("userEmail");
-    const profilePic = localStorage.getItem("profilePic");
-    if (id && name && email) {
-      setUser({ id, name, email, profilePic: profilePic || "" });
+    if (id) {
+      // Fetch user profile from backend
+      fetch(`${API_BASE}get_profile.php?id=${id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setUser({
+              id: data.data.id,
+              name: data.data.name,
+              email: data.data.email,
+              profilePic: data.data.profile_pic || ""
+            });
+          } else {
+            // Fallback to localStorage if backend fails
+            const name = localStorage.getItem("userName");
+            const email = localStorage.getItem("userEmail");
+            if (name && email) {
+              setUser({ id, name, email, profilePic: "" });
+            }
+          }
+        })
+        .catch(() => {
+          // Fallback to localStorage on error
+          const name = localStorage.getItem("userName");
+          const email = localStorage.getItem("userEmail");
+          if (name && email) {
+            setUser({ id, name, email, profilePic: "" });
+          }
+        });
     }
   }, []);
 
@@ -69,7 +93,6 @@ export default function Profile() {
         };
         setUser(updated);
         localStorage.setItem("userName", updated.name);
-        if (updated.profilePic) localStorage.setItem("profilePic", updated.profilePic);
 
         setMsgType("success");
         setMsg("Profile updated successfully ✅");
@@ -89,7 +112,7 @@ export default function Profile() {
   return (
     <div className={styles.profileCard}>
       <div className={styles.profilePicContainer}>
-        {user.profilePic ? (
+        {user.profilePic && user.profilePic !== 'null' ? (
           <img src={user.profilePic} alt="Profile" className={styles.profilePic} />
         ) : (
           <div className={styles.profilePicPlaceholder}>👤</div>

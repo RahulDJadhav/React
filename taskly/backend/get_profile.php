@@ -43,6 +43,11 @@ if ($userId > 0) {
     $result = $stmt->get_result();
 
     if ($row = $result->fetch_assoc()) {
+        // Convert NULL to empty string for frontend
+        if ($row['profile_pic'] === null) {
+            $row['profile_pic'] = "";
+        }
+        
         echo json_encode([
             "success" => true,
             "data" => $row

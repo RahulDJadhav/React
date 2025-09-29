@@ -10,31 +10,46 @@ import Filters from './Filters';
 const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onToggleImportant, onChangeStatus }) => {
   const isAdmin = localStorage.getItem('userRole') === 'admin';
   const [filteredData, setFilteredData] = useState(data);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(8);
 
   const handleFilterApply = ({ status, priorityFilter, q }) => {
     let filtered = data;
-    
+
     if (status) {
       filtered = filtered.filter(task => task.status === status);
     }
-    
+
     if (priorityFilter && priorityFilter !== 'All') {
       filtered = filtered.filter(task => task.priority === priorityFilter);
     }
-    
+
     if (q) {
-      filtered = filtered.filter(task => 
+      filtered = filtered.filter(task =>
         task.title.toLowerCase().includes(q.toLowerCase()) ||
         task.description.toLowerCase().includes(q.toLowerCase())
       );
     }
-    
+
     setFilteredData(filtered);
+    setCurrentPage(1);
   };
 
   useEffect(() => {
     setFilteredData(data);
+    setCurrentPage(1);
   }, [data]);
+
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentTasks = filteredData.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   // function to calculate days left
   const calculateDaysLeft = (dueDate) => {
@@ -91,14 +106,14 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
 
   const priorityOrder = ['Urgent', 'High', 'Medium', 'Low'];
   const groupedTasks = priorityOrder.reduce((acc, priority) => {
-    acc[priority] = filteredData.filter(task => task.priority === priority);
+    acc[priority] = currentTasks.filter(task => task.priority === priority);
     return acc;
   }, {});
 
   return (
     <div className="container">
       {!isAdmin && (
-        <Filters 
+        <Filters
           onApply={handleFilterApply}
           showUserFilter={false}
         />
@@ -106,105 +121,126 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
       {priorityOrder.flatMap(priority => {
         const tasks = groupedTasks[priority];
         return tasks.map(task => (
-        <div
-          key={task.id}
-          className={`row d-flex align-items-center mb-3 ${styles.todoList}  
+          <div
+            key={task.id}
+            className={`row d-flex align-items-center mb-3 ${styles.todoList}  
           ${task.priority === 'Urgent' ? 'border border-danger border-2'
-              : task.priority === 'High' ? 'border border-warning border-2'
-                : task.priority === 'Medium' ? 'border border-success border-2'
-                  : 'border border-secondary border-2'
-            }`}
-          style={{ zIndex: openMenuById[task.id] ? 100000 : 1 }}
-        >
-          <div className="col-md-1">
-            <div className="form-check d-flex align-items-center">
-              <input
-                className={`form-check-input me-2 ${styles.checkbox}`}
-                type="checkbox"
-                data-bs-toggle="tooltip"
-                data-bs-placement="top"
-                title={task.is_done ? "Mark as Open" : "Mark as Completed"}
-                id={`check-${task.id}`}
-                checked={!!task.is_done}
-                onChange={() => onDone && onDone(task.id, task.is_done)}
-              />
-              <FontAwesomeIcon
-                icon={task.is_important ? solidStar : regularStar}
-                style={{ color: task.is_important ? 'gold' : '#6c757d', cursor: 'pointer' }}
-                onClick={() => onToggleImportant && onToggleImportant(task.id, task.is_important)}
-                className="me-2"
-              />
-              <FontAwesomeIcon
-                icon={task.is_favorite ? solidHeart : regularHeart}
-                style={{ color: task.is_favorite ? 'red' : '#6c757d', cursor: 'pointer' }}
-                onClick={() => onToggleFavorite && onToggleFavorite(task.id, task.is_favorite)}
-                className="me-2"
-              />
+                : task.priority === 'High' ? 'border border-warning border-2'
+                  : task.priority === 'Medium' ? 'border border-success border-2'
+                    : 'border border-secondary border-2'
+              }`}
+            style={{ zIndex: openMenuById[task.id] ? 100000 : 1 }}
+          >
+            <div className="col-md-1">
+              <div className="form-check d-flex align-items-center">
+                <input
+                  className={`form-check-input me-2 ${styles.checkbox}`}
+                  type="checkbox"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title={task.is_done ? "Mark as Open" : "Mark as Completed"}
+                  id={`check-${task.id}`}
+                  checked={!!task.is_done}
+                  onChange={() => onDone && onDone(task.id, task.is_done)}
+                />
+                <FontAwesomeIcon
+                  icon={task.is_important ? solidStar : regularStar}
+                  style={{ color: task.is_important ? 'gold' : '#6c757d', cursor: 'pointer' }}
+                  onClick={() => onToggleImportant && onToggleImportant(task.id, task.is_important)}
+                  className="me-2"
+                />
+                <FontAwesomeIcon
+                  icon={task.is_favorite ? solidHeart : regularHeart}
+                  style={{ color: task.is_favorite ? 'red' : '#6c757d', cursor: 'pointer' }}
+                  onClick={() => onToggleFavorite && onToggleFavorite(task.id, task.is_favorite)}
+                  className="me-2"
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="col-md-2 d-flex align-items-center">
-            <span className="fw-semibold"><TaskTextToggle text={task.title} maxLength={20} /></span>
-          </div>
-          <div className="col-md-3 d-flex align-items-center text-muted small"><TaskTextToggle text={task.description} maxLength={40} /></div>
-          <div className="col-md-2">
-            <span className="text-muted small">{task.due_date}</span>
-            <br />
-            <span
-              className={`fw-semibold small 
-                  ${calculateDaysLeft(task.due_date).includes("Overdue") ? "text-danger" : "text-success"}`}
-            >
-              {calculateDaysLeft(task.due_date)}
-            </span>
-          </div>
-          <div className="col-md-2 text-center">
-            <div
-              className={styles.statusDropdown}
-              ref={(el) => { containerRefs.current[task.id] = el; }}
-            >
+            <div className="col-md-2 d-flex align-items-center">
+              <span className="fw-semibold"><TaskTextToggle text={task.title} maxLength={20} /></span>
+            </div>
+            <div className="col-md-3 d-flex align-items-center text-muted small"><TaskTextToggle text={task.description} maxLength={40} /></div>
+            <div className="col-md-2">
+              <span className="text-muted small">{task.due_date}</span>
+              <br />
               <span
-                className={`badge bg-light text-dark ${styles.statusToggle}`}
-                onClick={() => toggleMenu(task.id)}
+                className={`fw-semibold small 
+                  ${calculateDaysLeft(task.due_date).includes("Overdue") ? "text-danger" : "text-success"}`}
               >
-                {task.status || 'Open'}
+                {calculateDaysLeft(task.due_date)}
               </span>
+            </div>
+            <div className="col-md-2 text-center">
               <div
-                className={styles.statusMenu}
-                style={{ display: openMenuById[task.id] ? 'block' : 'none' }}
+                className={styles.statusDropdown}
+                ref={(el) => { containerRefs.current[task.id] = el; }}
               >
-                {STATUS_OPTIONS.map(opt => (
-                  <div
-                    key={opt}
-                    className={styles.statusMenuItem}
-                    onClick={() => { onChangeStatus && onChangeStatus(task, opt); closeMenu(task.id); }}
-                  >
-                    {opt}
-                  </div>
-                ))}
+                <span
+                  className={`badge bg-light text-dark ${styles.statusToggle}`}
+                  onClick={() => toggleMenu(task.id)}
+                >
+                  {task.status || 'Open'}
+                </span>
+                <div
+                  className={styles.statusMenu}
+                  style={{ display: openMenuById[task.id] ? 'block' : 'none' }}
+                >
+                  {STATUS_OPTIONS.map(opt => (
+                    <div
+                      key={opt}
+                      className={styles.statusMenuItem}
+                      onClick={() => { onChangeStatus && onChangeStatus(task, opt); closeMenu(task.id); }}
+                    >
+                      {opt}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-1  d-flex text-center justify-content-center">
+              <span className={`badge 
+              ${task.priority === 'Urgent' ? 'bg-danger'
+                  : task.priority === 'High' ? 'bg-warning'
+                    : task.priority === 'Medium' ? 'bg-success'
+                      : 'bg-secondary'
+                } `}>{task.priority}</span>
+
+            </div>
+            <div className="col-md-1 text-center">
+              <div className="ms-3">
+                <TaskOptions
+                  onEdit={() => onEdit && onEdit(task)}
+                  onDelete={() => onDelete && onDelete(task.id)}
+                />
               </div>
             </div>
           </div>
-
-          <div className="col-md-1  d-flex text-center justify-content-center">
-            <span className={`badge 
-              ${task.priority === 'Urgent' ? 'bg-danger'
-                : task.priority === 'High' ? 'bg-warning'
-                  : task.priority === 'Medium' ? 'bg-success'
-                    : 'bg-secondary'
-              } `}>{task.priority}</span>
-
-          </div>
-          <div className="col-md-1 text-center">
-            <div className="ms-3">
-              <TaskOptions
-                onEdit={() => onEdit && onEdit(task)}
-                onDelete={() => onDelete && onDelete(task.id)}
-              />
-            </div>
-          </div>
-        </div>
         ));
       })}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <nav className="mt-4">
+          <ul className="pagination justify-content-end mb-0">
+            <li className={`page-item ${currentPage === 1 && 'disabled'}`}>
+              <button className="page-link" onClick={() => handlePageChange(currentPage - 1)}>Previous</button>
+            </li>
+
+            {[...Array(totalPages)].map((_, i) => (
+              <li key={i} className={`page-item ${currentPage === i + 1 && 'active'}`}>
+                <button className="page-link" onClick={() => handlePageChange(i + 1)}>{i + 1}</button>
+              </li>
+            ))}
+
+            <li className={`page-item ${currentPage === totalPages && 'disabled'}`}>
+              <button className="page-link" onClick={() => handlePageChange(currentPage + 1)}>Next</button>
+            </li>
+          </ul>
+        </nav>
+      )}
     </div>
   );
 };
