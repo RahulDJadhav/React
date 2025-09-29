@@ -10,7 +10,7 @@ const CategoryControls = () => {
   return (
     <div className="row d-flex align-items-center mb-3">
 
-      <div className="col-md-2">
+      {/* <div className="col-md-2">
         <div className="input-group">
           <span className="input-group-text bg-white">
             <input type="checkbox" className="form-check-input " />
@@ -29,7 +29,7 @@ const CategoryControls = () => {
           <input type="text" className="form-control" placeholder="Order by" />
         </div>
       </div>
-      <div className="col-md-2"></div>
+      <div className="col-md-2"></div> */}
     </div>
   );
 };

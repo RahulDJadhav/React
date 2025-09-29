@@ -8,7 +8,9 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: POST");
 
-$conn = new mysqli("localhost", "root", "", "taskly");
+// $conn = new mysqli("localhost", "root", "", "taskly");
+// DB connection
+include 'db.php';
 
 if ($conn->connect_error) {
     die(json_encode(["message" => "Connection failed: " . $conn->connect_error]));

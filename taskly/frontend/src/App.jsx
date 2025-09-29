@@ -12,7 +12,8 @@ import DueSoonModal from './components/DueSoonModal';
 
 const App = () => {
 
-  const API_BASE = 'http://localhost/taskly/taskly/backend/';
+  // const API_BASE = 'http://localhost/taskly/taskly/backend/';
+  const API_BASE = process.env.REACT_APP_API_URL;
   // tasks: Array holding all todo tasks
   const [tasks, setTasks] = useState([]);
   const [dueSoonTasks, setDueSoonTasks] = useState([]);
@@ -34,6 +35,14 @@ const App = () => {
 
   const [showAdmin, setShowAdmin] = useState(false);
   const isAdmin = localStorage.getItem('userRole') === 'admin';
+
+  // Add currentUserId state
+  const [currentUserId, setCurrentUserId] = useState(localStorage.getItem('userId') || '');
+
+  // Keep currentUserId in sync with localStorage and login state
+  useEffect(() => {
+    setCurrentUserId(localStorage.getItem('userId') || '');
+  }, [isLoggedIn]);
 
   // Reset due modal state on login changes
   useEffect(() => {
@@ -420,10 +429,16 @@ const App = () => {
   if (!isLoggedIn) {
     return <Login onLogin={() => setIsLoggedIn(true)} />;
   }
+  const handleLogout = () => {
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userRole");
+    sessionStorage.clear();
+    setIsLoggedIn(false);
+  };
   return (
     <div className="d-flex flex-column body" style={{ minHeight: '100vh' }}>
       {/* Header */}
-      <Header onAddClick={handleOpenCreate} onLogout={() => setIsLoggedIn(false)} tasks={tasks} onOpenAdmin={() => setShowAdmin(true)} />
+      <Header onAddClick={handleOpenCreate} onLogout={() => handleLogout()} tasks={tasks} onOpenAdmin={() => setShowAdmin(true)} />
 
       {/* Body: Sidebar + Content */}
       <div className="d-flex flex-grow-1">
@@ -462,6 +477,7 @@ const App = () => {
                   onToggleImportant={handleToggleImportant}
                   activeFilter={activeFilter}
                   onChangeStatus={handleChangeStatus}
+                  currentUserId={currentUserId}
                 />
               )}
             </div>

@@ -11,6 +11,7 @@ const MainContent = ({
   onToggleImportant,
   activeFilter,     // keep this
   onChangeStatus,
+  currentUserId,
 }) => {
   const filteredTasks = tasks.filter(task => {
     if (activeFilter !== 'Completed' && !!task.is_done) return false;
@@ -37,6 +38,7 @@ const MainContent = ({
       <div className="col-12">
         <CategoryControls />
         <TodoListCard
+          userId={currentUserId}
           data={filteredTasks}
           onEdit={onEdit}
           onDelete={onDelete}

@@ -3,7 +3,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import styles from "./Profile.module.css";
 
-const API_BASE = "http://localhost/taskly/taskly/backend/";
+// const API_BASE = "http://localhost/taskly/taskly/backend/";
+const API_BASE = process.env.REACT_APP_API_URL;
 
 export default function Profile() {
   const [user, setUser] = useState({ id: "", name: "", email: "", profilePic: "" });

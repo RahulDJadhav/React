@@ -1,28 +1,28 @@
 import React, { useEffect, useState } from 'react';
+import Filters from './Filters';
 
-const API_BASE = 'http://localhost/taskly/taskly/backend/';
+// const API_BASE = 'http://localhost/taskly/taskly/backend/';
+const API_BASE = process.env.REACT_APP_API_URL;
 
-export default function AdminPanel({ onClose }) {
+export default function AdminPanel({ onClose, role = "admin" }) {
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
-  const [status, setStatus] = useState('');
-  const [userId, setUserId] = useState('');
-  const [q, setQ] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [priorityFilter, setPriorityFilter] = useState("All");
 
-  const filteredTasks = tasks.filter(t =>
-    priorityFilter === "All" || t.priority === priorityFilter
-  );
+  // Apply priority filter on frontend
+  const filteredTasks = priorityFilter === "All"
+    ? tasks
+    : tasks.filter(t => t.priority === priorityFilter);
 
   const [itemsPerPage] = useState(5);
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentTasks = filteredTasks.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
-  // Fetch users
+
   useEffect(() => {
     fetch(`${API_BASE}getUsers.php`)
       .then(r => r.json())
@@ -30,29 +30,35 @@ export default function AdminPanel({ onClose }) {
       .catch(() => setUsers([]));
   }, []);
 
-  useEffect(() => {
-    if (q.trim() !== "") {
-      const delayDebounce = setTimeout(() => {
-        fetchTasks();
-      }, 500); // wait 500ms after typing (debounce)
+  const fetchTasks = (filters = {}) => {
+    setLoading(true);
+    const qs = new URLSearchParams();
+    if (filters.status) qs.append('status', filters.status);
+    if (filters.userId) qs.append('user_id', filters.userId);
+    if (filters.q) qs.append('q', filters.q);
+    // Do NOT send priority to backend; filter on frontend only
+    fetch(`${API_BASE}getTasksAdmin.php?` + qs.toString())
+      .then(r => r.json())
+      .then(data => Array.isArray(data) ? setTasks(data) : setTasks([]))
+      .catch(() => setTasks([]))
+      .finally(() => setLoading(false));
+  };
 
-      return () => clearTimeout(delayDebounce);
-    } else {
-      fetchTasks(); // reload all tasks if search box is empty
-    }
-  }, [q]);
+  // Handler for Filters component
+  const handleApplyFilters = (filters) => {
+    setCurrentPage(1); // Reset to first page on filter
+    setPriorityFilter(filters.priorityFilter || 'All');
+    fetchTasks(filters);
+  };
 
   const calculateDaysLeft = (dueDate) => {
     if (!dueDate) return '';
-
     const today = new Date();
     const due = new Date(dueDate);
     today.setHours(0, 0, 0, 0);
     due.setHours(0, 0, 0, 0);
-
     const diffTime = due - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
     if (diffDays > 0) return `${diffDays} day${diffDays > 1 ? 's' : ''} left`;
     if (diffDays === 0) return "Due today";
     return `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) > 1 ? 's' : ''}`;
@@ -64,24 +70,10 @@ export default function AdminPanel({ onClose }) {
     }
   };
 
-  const fetchTasks = () => {
-    setLoading(true);
-    const qs = new URLSearchParams();
-    if (status) qs.append('status', status);
-    if (userId) qs.append('user_id', userId);
-    if (q) qs.append('q', q);
-
-    fetch(`${API_BASE}getTasksAdmin.php?` + qs.toString())
-      .then(r => r.json())
-      .then(data => Array.isArray(data) ? setTasks(data) : setTasks([]))
-      .catch(() => setTasks([]))
-      .finally(() => setLoading(false));
-  };
-
   useEffect(() => {
-    fetchTasks();
+    fetchTasks(); // initial load with no filters
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // initial load
+  }, []);
 
   return (
     <div className="container-fluid py-3">
@@ -92,11 +84,10 @@ export default function AdminPanel({ onClose }) {
       </div>
 
       <div className="row g-3 mb-4">
-        {[
-          { title: "Total Tasks", value: tasks.length, color: "primary" },
-          { title: "Open", value: tasks.filter(t => t.status === "Open").length, color: "info" },
-          { title: "In Progress", value: tasks.filter(t => t.status === "In Progress").length, color: "warning" },
-          { title: "Completed", value: tasks.filter(t => t.status === "Completed").length, color: "success" }
+        {[{ title: "Total Tasks", value: tasks.length, color: "primary" },
+        { title: "Open", value: tasks.filter(t => t.status === "Open").length, color: "info" },
+        { title: "In Progress", value: tasks.filter(t => t.status === "In Progress").length, color: "warning" },
+        { title: "Completed", value: tasks.filter(t => t.status === "Completed").length, color: "success" }
         ].map((card, idx) => (
           <div className="col-md-3" key={idx}>
             <div className={`card text-center shadow-sm border-0 p-3 text-${card.color}`}
@@ -110,69 +101,13 @@ export default function AdminPanel({ onClose }) {
         ))}
       </div>
 
-
       {/* Filters */}
-      <div className="card shadow-sm border-0 p-3 mb-4">
-        <div className="row g-3">
-          <div className="col-md-3">
-            <label className="form-label fw-semibold">User</label>
-            <select className="form-select" value={userId} onChange={e => setUserId(e.target.value)}>
-              <option value="">All Users</option>
-              {users.map(u => (
-                <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
-              ))}
-            </select>
-          </div>
-          <div className="col-md-2">
-            <label className="form-label fw-semibold">Status</label>
-            <select className="form-select" value={status} onChange={e => setStatus(e.target.value)}>
-              <option value="">All</option>
-              <option value="Open">Open</option>
-              <option value="In Progress">In Progress</option>
-              <option value="On Hold">On Hold</option>
-              <option value="Cancelled">Cancelled</option>
-              <option value="Completed">Completed</option>
-            </select>
-          </div>
-          <div className="col-md-2">
-            <label className="form-label fw-semibold"> Priority:</label>
-            <select
-              className="form-select"
-              value={priorityFilter}
-              onChange={(e) => {
-                setPriorityFilter(e.target.value);
-                setCurrentPage(1); // reset to page 1 after filter change
-              }}
-            >
-              <option value="All">All</option>
-              <option value="Urgent">Urgent</option>
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </select>
-          </div>
-          <div className="col-md-3">
-            <label className="form-label fw-semibold">Search</label>
-            <input
-              className="form-control"
-              placeholder="Title / Description"
-              value={q}
-              onChange={e => setQ(e.target.value)}
-            />
-          </div>
-          <div className="col-md-2 d-flex align-items-end">
-            <button className="btn btn-primary-taskly text-white w-100" onClick={fetchTasks} disabled={loading}>
-              {loading ? 'Loading...' : 'Apply'}
-            </button>
-          </div>
-        </div>
-      </div>
+      <Filters users={users} loading={loading} onApply={handleApplyFilters} />
 
       {/* Main Table */}
       <div className="card shadow-sm border-0">
         <div className="card-body p-0">
-          {filteredTasks.length === 0 ? (
-            // <p className="text-muted p-3 text-center">No tasks found.</p>
+          {currentTasks.length === 0 ? (
             <div className="text-center py-5">
               <img
                 src="https://cdn-icons-png.flaticon.com/512/2748/2748558.png"

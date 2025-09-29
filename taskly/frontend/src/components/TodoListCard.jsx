@@ -5,8 +5,36 @@ import { faStar as solidStar, faHeart as solidHeart } from '@fortawesome/free-so
 import { faStar as regularStar, faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
 import TaskOptions from './TaskOptions';
 import TaskTextToggle from './TaskTextToggle';
+import Filters from './Filters';
 
 const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onToggleImportant, onChangeStatus }) => {
+  const isAdmin = localStorage.getItem('userRole') === 'admin';
+  const [filteredData, setFilteredData] = useState(data);
+
+  const handleFilterApply = ({ status, priorityFilter, q }) => {
+    let filtered = data;
+    
+    if (status) {
+      filtered = filtered.filter(task => task.status === status);
+    }
+    
+    if (priorityFilter && priorityFilter !== 'All') {
+      filtered = filtered.filter(task => task.priority === priorityFilter);
+    }
+    
+    if (q) {
+      filtered = filtered.filter(task => 
+        task.title.toLowerCase().includes(q.toLowerCase()) ||
+        task.description.toLowerCase().includes(q.toLowerCase())
+      );
+    }
+    
+    setFilteredData(filtered);
+  };
+
+  useEffect(() => {
+    setFilteredData(data);
+  }, [data]);
 
   // function to calculate days left
   const calculateDaysLeft = (dueDate) => {
@@ -61,9 +89,23 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
     );
   }
 
+  const priorityOrder = ['Urgent', 'High', 'Medium', 'Low'];
+  const groupedTasks = priorityOrder.reduce((acc, priority) => {
+    acc[priority] = filteredData.filter(task => task.priority === priority);
+    return acc;
+  }, {});
+
   return (
     <div className="container">
-      {data.map(task => (
+      {!isAdmin && (
+        <Filters 
+          onApply={handleFilterApply}
+          showUserFilter={false}
+        />
+      )}
+      {priorityOrder.flatMap(priority => {
+        const tasks = groupedTasks[priority];
+        return tasks.map(task => (
         <div
           key={task.id}
           className={`row d-flex align-items-center mb-3 ${styles.todoList}  
@@ -72,6 +114,7 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
                 : task.priority === 'Medium' ? 'border border-success border-2'
                   : 'border border-secondary border-2'
             }`}
+          style={{ zIndex: openMenuById[task.id] ? 100000 : 1 }}
         >
           <div className="col-md-1">
             <div className="form-check d-flex align-items-center">
@@ -160,7 +203,8 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
             </div>
           </div>
         </div>
-      ))}
+        ));
+      })}
     </div>
   );
 };

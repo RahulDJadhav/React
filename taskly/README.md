@@ -145,110 +145,102 @@ Successful responses include a message string (e.g., "updated"). After mutation,
 - Unit tests (React Testing Library) and API tests
 - Migrate backend to Node/Express or Laravel as optional paths
 
-## Live Demo Script (10–12 minutes)
 
-- Prep (before you start sharing)
-  - Start Apache + MySQL in XAMPP.
-  - Open the backend test URL in a tab: `http://localhost/React/taskly/backend/getTasks.php?user_id=1` (to prove API works).
-  - In another terminal: `cd C:\xampp\htdocs\React\taskly\frontend && npm start`.
-  - App URL ready: `http://localhost:3000`.
 
-### 1) Introduce the app (1 min)
-- “Taskly is a React + PHP/MySQL task manager.”
-- “Frontend is React with Bootstrap; backend is PHP endpoints on XAMPP; MySQL stores users and tasks.”
-- “You’ll see login, create task, inline status updates, due reminders, and an admin view.”
+## Getting Started Guide (User & Admin)
 
-### 2) Login and data fetch (1 min)
-- Navigate to `http://localhost:3000`.
-- Log in with an existing account (or sign up quickly if needed).
-- Say: “On login, the app fetches tasks via `getTasks.php?user_id=<id>`; this drives the UI.”
+This guide explains how to use Taskly as a regular User and as an Admin.
 
-Expected: Task list appears. If tasks due today/tomorrow exist, a due reminder modal opens once.
+### A) User Guide
 
-### 3) Due reminder (30 sec)
-- If the modal appears: “This shows tasks due today or tomorrow; it’s presented once per login.”
-- Click Dismiss. Note: “It won’t reappear until next login.”
+1) Sign Up / Login
+- Open the app: `http://localhost:3000`.
+- New user: click Create a new account, fill Username, email, password.
+- Existing user: enter email and password to log in.
 
-If no due tasks: say “If tasks were due today/tomorrow, you’d see the reminder here.”
+2) Home Dashboard
+- After login, your tasks appear in a list.
+- If you have tasks due today or tomorrow, a reminder modal will show once per login.
 
-### 4) Create a task (2 min)
-- Click “Add” (or your Create button).
-- In the modal:
-  - Title: “Prepare sprint review”
-  - Description: “Slides + live demo”
-  - Start Date: pick today
-  - Due Date: pick tomorrow
-  - Priority: High
-  - Status: Open
-- Submit.
+3) Create a Task
+- Click the Add button (usually in the header).
+- Fill in:
+  - Title (required)
+  - Description (optional)
+  - Start Date (required)
+  - Due Date (required)
+  - Priority (Low / Medium / High / Urgent)
+  - Status (Open / In Progress / On Hold / Cancelled / Completed)
+- Click Create. The new task appears in the list.
 
-Expected: New card appears with correct dates (no off-by-one). Say: “Dates are stored/displayed as local yyyy-MM-dd to avoid timezone shifts.”
+4) Update a Task
+- From the task’s action menu (ellipsis), click Edit.
+- Change fields as needed and save.
+- Tip: Dates are stored/displayed as local yyyy-MM-dd to avoid timezone issues.
 
-Optional: Show network tab request to `addTask.php`, then `getTasks.php` re-fetch.
+5) Change Status Inline (No Edit Needed)
+- Click the status badge on the task card.
+- Choose a status (Open, In Progress, On Hold, Cancelled, Completed).
+- If you select Completed, the task’s Done checkbox is also set.
 
-### 5) Inline status change (1.5 min)
-- On the new card, click the status badge (e.g., “Open”).
-- The click menu opens; pick “In Progress”.
+6) Mark Done / Reopen Quickly
+- Toggle the checkbox at the start of the row.
+- Checked = Done (status becomes Completed), Unchecked = Open.
 
-Expected: Status updates; list re-fetches. Say: “This hits `updateStatus.php` with `{ status, is_done }`. If I choose Completed, it also sets `is_done = 1`.”
+7) Mark Favorite / Important
+- Click the heart (Favorite) or star (Important) icons to toggle.
+- These flags help organize and filter tasks.
 
-- Click again → choose “Completed”. Checkbox becomes checked.
+8) Filters
+- Use the sidebar to filter your list:
+  - All: all active tasks
+  - Important: tasks with the star flag
+  - Favorites: tasks with the heart flag
+  - Completed: tasks with Done = 1
+  - Due Soon: tasks due in the next 7 days
 
-### 6) Done/Open checkbox (30 sec)
-- Uncheck the Done checkbox.
+9) Delete a Task
+- From the action menu (ellipsis), click Delete.
+- Confirm to remove the task.
 
-Expected: Status flips back to “Open” via `updateStatus.php`. Mention confirmation prompts if any.
+10) Logout
+- Use the header logout button to end your session.
 
-### 7) Flags: Important & Favorite (30 sec)
-- Click the star icon (Important) → toggles color.
-- Click the heart icon (Favorite) → toggles color.
+### B) Admin Guide
 
-Say: “These call `toggleImportant.php` and `toggleFavorite.php` and then re-fetch.”
+1) Open Admin Panel
+- After login (with an admin role), click the Admin button in the header.
+- The Admin Dashboard opens in an overlay.
 
-### 8) Filters (45 sec)
-- Use the sidebar filters:
-  - “Important” → shows important tasks
-  - “Favorites” → favorites
-  - “Completed” → tasks with `is_done=1`
-  - “Due Soon” → tasks due within 7 days
+2) Users List
+- Top section shows registered users (name and email).
 
-Say: “Filtering is client-side; ‘Due Soon’ checks the date range.”
+3) Tasks Table
+- Shows all tasks with columns: User, Title, Due, Days Left, Priority, Status, Flags.
+- Pagination controls at the bottom.
 
-### 9) Admin panel (1.5 min)
-- Open Admin panel (button in header).
-- Show:
-  - Users list (top)
-  - Tasks table with pagination
-  - Filter by priority
-  - Type in search field and pause → debounce triggers `getTasksAdmin.php?q=...`
+4) Filters and Search
+- Filter by Priority or Status.
+- Filter by User.
+- Search box supports text search across title/description.
+- Debounced search (wait a moment after typing to trigger).
 
-Say: “Admin endpoint joins `todotasks` and `users` for management views.”
+5) Data Source
+- The admin view uses `getTasksAdmin.php` with optional query parameters: `status`, `user_id`, `q`.
 
-### 10) Quick architecture slide (talk track, 1 min)
-- “Frontend React SPA, calls PHP endpoints.”
-- “PHP talks to MySQL and returns JSON.”
-- “State flows: after any mutation, we re-fetch tasks to keep UI in sync.”
-- “Why React: component model, ecosystem (datepicker, Bootstrap), SPA UX, quick iteration vs jQuery/Angular overhead.”
+6) Close Admin Panel
+- Click Close to return to the main app.
 
-### 11) Troubleshooting talking points (30 sec)
-- If errors connecting: confirm API base is `${window.location.origin}/React/taskly/backend/`.
-- If CRA fails: use React 18 (`npm i react@18.3.1 react-dom@18.3.1`).
-- If dates slip: confirm local date formatter is used (CreateTaskForm).
-
-### 12) Close (15 sec)
-- “Taskly demonstrates a clean split: React UI, PHP+MySQL backend. Inline UX (status menu, flags), correct date handling, and a login-driven due reminder.”
-
-#### Optional deep-dive (if asked)
-- Show `src/App.jsx` handlers: `handleChangeStatus`, `handleDoneTask`.
-- Show `backend/updateStatus.php` parameter contract.
-- Show `CreateTaskForm.jsx` local date formatting (`yyyy-MM-dd`).
-
-#### Cheat sheet for endpoints (show if asked)
-- Read: `GET getTasks.php?user_id=<id>`
-- Create: `POST addTask.php`
-- Update: `POST updateTask.php`
-- Status: `POST updateStatus.php`
-- Delete: `POST deleteTask.php`
-- Flags: `POST toggleFavorite.php`, `POST toggleImportant.php`
-- Admin: `GET getTasksAdmin.php?[status]&[user_id]&[q]`
+### Tips & Troubleshooting
+- API Base: Ensure `API_BASE` in `src/App.jsx` matches your server path. Recommended:
+  ```js
+  const API_BASE = `${window.location.origin}/React/taskly/backend/`;
+  ```
+- XAMPP: Apache and MySQL must be running.
+- Backend test: Open `http://localhost/React/taskly/backend/getTasks.php?user_id=1` to verify JSON.
+- CRA issues: If React 19 causes build errors, install React 18:
+  ```bash
+  npm i react@18.3.1 react-dom@18.3.1
+  ```
+- Dates: The app formats dates in local `yyyy-MM-dd` to avoid timezone shifts.
 

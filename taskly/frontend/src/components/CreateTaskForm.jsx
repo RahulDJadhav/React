@@ -271,3 +271,10 @@ const CreateTaskForm = forwardRef(({ onSubmit, onUpdate, onEdit }, ref) => {
 });
 
 export default CreateTaskForm;
+
+export const PRIORITY_ORDER = {
+  Urgent: 1,
+  High: 2,
+  Medium: 3,
+  Low: 4,
+};

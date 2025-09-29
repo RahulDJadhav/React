@@ -5,7 +5,8 @@ import AddButton from './AddButton';
 import styles from './Login.module.css';
 
 const Login = ({ onLogin }) => {
-  const API_BASE = 'http://localhost/taskly/taskly/backend/';
+  // const API_BASE = 'http://localhost/taskly/taskly/backend/';
+  const API_BASE = process.env.REACT_APP_API_URL;
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -216,7 +217,7 @@ const Login = ({ onLogin }) => {
                     color: '#888',
                   }}
                 />
-                {!isPasswordMatch && <p className={styles.error}>Passwords do not match!</p>}
+                {/* {!isPasswordMatch && <p className={styles.error}>Passwords do not match!</p>} */}
               </div>
             )}
 

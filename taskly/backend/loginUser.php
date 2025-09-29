@@ -16,7 +16,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
 // DB connection
-$conn = new mysqli("localhost", "root", "", "taskly");
+include 'db.php';
 
 if ($conn->connect_error) {
     echo json_encode(["success" => false, "message" => "Database connection failed."]);

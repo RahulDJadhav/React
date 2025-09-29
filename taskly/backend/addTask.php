@@ -1,4 +1,3 @@
-
 <?php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
@@ -17,8 +16,9 @@ header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
-// Connect DB
-$conn = new mysqli("localhost", "root", "", "taskly");
+// DB connection
+include 'db.php';
+// $conn = new mysqli("localhost", "root", "", "taskly");
 if ($conn->connect_error) {
     http_response_code(500);
     echo json_encode(["message" => "Connection failed: " . $conn->connect_error]);
