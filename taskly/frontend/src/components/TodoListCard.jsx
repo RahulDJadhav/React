@@ -72,6 +72,8 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
 
   // Track open status menu per task id
   const [openMenuById, setOpenMenuById] = useState({});
+  // Track open task options menu per task id
+  const [openTaskOptionsById, setOpenTaskOptionsById] = useState({});
   const containerRefs = useRef({});
 
   const toggleMenu = (taskId) => {
@@ -79,6 +81,10 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
   };
   const closeMenu = (taskId) => {
     setOpenMenuById(prev => ({ ...prev, [taskId]: false }));
+  };
+
+  const handleTaskOptionsToggle = (taskId, isOpen) => {
+    setOpenTaskOptionsById(prev => ({ ...prev, [taskId]: isOpen }));
   };
 
   useEffect(() => {
@@ -129,7 +135,7 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
                   : task.priority === 'Medium' ? 'border border-success border-2'
                     : 'border border-secondary border-2'
               }`}
-            style={{ zIndex: openMenuById[task.id] ? 100000 : 1 }}
+            style={{ zIndex: (openMenuById[task.id] || openTaskOptionsById[task.id]) ? 100000 : 1 }}
           >
             <div className="col-md-1">
               <div className="form-check d-flex align-items-center">
@@ -212,8 +218,10 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
             <div className="col-md-1 text-center">
               <div className="ms-3">
                 <TaskOptions
+                  taskId={task.id}
                   onEdit={() => onEdit && onEdit(task)}
                   onDelete={() => onDelete && onDelete(task.id)}
+                  onMenuToggle={handleTaskOptionsToggle}
                 />
               </div>
             </div>

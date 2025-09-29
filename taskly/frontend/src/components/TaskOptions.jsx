@@ -5,9 +5,17 @@ import { faEdit, faTrash, faEllipsisH } from '@fortawesome/free-solid-svg-icons'
 import styles from './TaskOptions.module.css';
 
 
-const TaskOptions = ({ onEdit, onDelete }) => {
+const TaskOptions = ({ onEdit, onDelete, taskId, onMenuToggle }) => {
   const [show, setShow] = useState(false);
   const boxRef = useRef(null);
+
+  const handleToggle = () => {
+    const newShow = !show;
+    setShow(newShow);
+    if (onMenuToggle) {
+      onMenuToggle(taskId, newShow);
+    }
+  };
 
   // Close if clicked outside
   useEffect(() => {
@@ -22,7 +30,7 @@ const TaskOptions = ({ onEdit, onDelete }) => {
 
   return (
     <div className="position-relative" ref={boxRef}>
-      <div className='cursor-pointer' onClick={() => setShow((prev) => !prev)} >
+      <div className='cursor-pointer' onClick={handleToggle} >
         <FontAwesomeIcon icon={faEllipsisH} />
       </div>
 
@@ -31,10 +39,10 @@ const TaskOptions = ({ onEdit, onDelete }) => {
           {/* <div className={`dropdown-item d-flex ${styles.actionBtn}`} onClick={onDone} >
             <FontAwesomeIcon icon={faCheck} className="me-2 mt-1" /> Done
           </div> */}
-          <div className={`dropdown-item d-flex ${styles.actionBtn}`} onClick={onEdit} >
+          <div className={`dropdown-item d-flex ${styles.actionBtn}`} onClick={() => { onEdit(); setShow(false); if (onMenuToggle) onMenuToggle(taskId, false); }} >
             <FontAwesomeIcon icon={faEdit} className="me-2 mt-1" /> Edit
           </div>
-          <div className={`dropdown-item d-flex  ${styles.actionBtn}`} onClick={onDelete} >
+          <div className={`dropdown-item d-flex  ${styles.actionBtn}`} onClick={() => { onDelete(); setShow(false); if (onMenuToggle) onMenuToggle(taskId, false); }} >
             <FontAwesomeIcon icon={faTrash} className="me-2 mt-1" /> Delete
           </div>
         </div>

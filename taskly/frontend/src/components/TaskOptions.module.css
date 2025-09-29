@@ -15,13 +15,15 @@
 
 .dropdownItemDiv {
   right: 0;
-  zIndex: 10;
+  z-index: 99999;
   width: 120px;
   position: absolute;
   color: #4d46e1;
-  background-color: #fff;
+  background-color: #fff !important;
   border-radius: 4px;
   padding: 5px;
+  box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .25);
+  border: 1px solid rgba(0, 0, 0, .15);
 }
 
 .todoList {

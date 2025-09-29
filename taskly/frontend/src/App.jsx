@@ -30,7 +30,7 @@ const App = () => {
   const formRef = useRef();
 
   // isLoggedIn: Tracks if the user is logged in.
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('userId'));
   const [activeFilter, setActiveFilter] = useState('All');
 
   const [showAdmin, setShowAdmin] = useState(false);
@@ -457,10 +457,20 @@ const App = () => {
           <div className="row mb-3">
             <div className="col">
               {successMessage && (
-                <div className="taskSuccess">
-                  {successMessage}
+                <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style={{ zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                  <div className="rounded-4 shadow-lg p-5 text-center text-white" style={{ 
+                    minWidth: '350px', 
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    animation: 'fadeIn 0.3s ease-in',
+                    border: '3px solid rgba(255,255,255,0.2)'
+                  }}>
+                    <div className="mb-3" style={{ color: '#90EE90' }}>
+                      <i className="fas fa-check-circle" style={{ fontSize: '4rem', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}></i>
+                    </div>
+                    <h4 className="mb-3" style={{ fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>Success!</h4>
+                    <p className="mb-0" style={{ fontSize: '1.1rem', opacity: '0.9' }}>{successMessage}</p>
+                  </div>
                 </div>
-
               )}
               {showDueModal && (
                 <DueSoonModal tasks={dueSoonTasks} onClose={handleDismissDueModal} />
