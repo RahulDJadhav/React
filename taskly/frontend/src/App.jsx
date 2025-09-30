@@ -85,9 +85,7 @@ const App = () => {
       return;
     }
     if (!tasks || tasks.length === 0) {
-      setDueSoonTasks([]);
-      setShowDueModal(false);
-      setHasShownDueModal(true); // consume for this login regardless
+      // Don't mark as shown if tasks haven't loaded yet
       return;
     }
     const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -96,6 +94,7 @@ const App = () => {
     const filtered = tasks.filter(t => {
       if (!t.due_date) return false;
       if (Number(t.is_done) === 1) return false;
+      if (t.status === 'Cancelled') return false; // Exclude cancelled tasks
       const due = new Date(t.due_date); due.setHours(0, 0, 0, 0);
       const isToday = due.getTime() === today.getTime();
       const isTomorrow = due.getTime() === tomorrow.getTime();
@@ -386,6 +385,7 @@ const App = () => {
   const importantTasksCount = tasks.filter(task => task.is_important).length;
   const favoritesCount = tasks.filter(task => task.is_favorite).length;
   const doneTasksCount = tasks.filter(task => task.is_done).length;
+  const cancelledTaskCount = tasks.filter(task => task.status === 'Cancelled').length;
   const dueSoonTasksCount = tasks.filter(task => {
     if (!task.due_date || task.is_done) return false;
     const today = new Date();
@@ -404,6 +404,7 @@ const App = () => {
     "Favorites": favoritesCount,
     "Completed": doneTasksCount,
     "Due Soon": dueSoonTasksCount,
+    "Cancelled": cancelledTaskCount,
   };
 
 
@@ -458,8 +459,8 @@ const App = () => {
             <div className="col">
               {successMessage && (
                 <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style={{ zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                  <div className="rounded-4 shadow-lg p-5 text-center text-white" style={{ 
-                    minWidth: '350px', 
+                  <div className="rounded-4 shadow-lg p-5 text-center text-white" style={{
+                    minWidth: '350px',
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     animation: 'fadeIn 0.3s ease-in',
                     border: '3px solid rgba(255,255,255,0.2)'

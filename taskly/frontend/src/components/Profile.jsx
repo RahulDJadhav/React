@@ -113,7 +113,7 @@ export default function Profile() {
     <div className={styles.profileCard}>
       <div className={styles.profilePicContainer}>
         {user.profilePic && user.profilePic !== 'null' ? (
-          <img src={user.profilePic} alt="Profile" className={styles.profilePic} />
+          <img src={`${user.profilePic}?t=${Date.now()}`} alt="Profile" className={styles.profilePic} />
         ) : (
           <div className={styles.profilePicPlaceholder}>👤</div>
         )}

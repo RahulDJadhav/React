@@ -55,9 +55,12 @@ const Header = ({ onAddClick, onLogout, tasks, onOpenAdmin }) => {
           <FontAwesomeIcon icon={faTasks} size="1x" /> Taskly
         </span>
 
-        <form className="d-flex w-50 mx-3 col-md-4">
+        {/* <form className="d-flex w-50 mx-3 col-md-4">
           <input className="form-control me-2" type="search" placeholder="Search tasks..." aria-label="Search" />
-        </form>
+        </form> */}
+
+
+
 
         <div className='d-flex align-items-center justify-content-end'>
           {localStorage.getItem('userRole') === 'admin' && (

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './TodoListCard.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar as solidStar, faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons';
+import { faStar as solidStar, faHeart as solidHeart, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { faStar as regularStar, faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
 import TaskOptions from './TaskOptions';
 import TaskTextToggle from './TaskTextToggle';
@@ -12,6 +12,7 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
   const [filteredData, setFilteredData] = useState(data);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
+  const [hasActiveFilters, setHasActiveFilters] = useState(false);
 
   const handleFilterApply = ({ status, priorityFilter, q }) => {
     let filtered = data;
@@ -33,6 +34,13 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
 
     setFilteredData(filtered);
     setCurrentPage(1);
+    setHasActiveFilters(!!(status || (priorityFilter && priorityFilter !== 'All') || q));
+  };
+
+  const handleClearFilters = () => {
+    setFilteredData(data);
+    setCurrentPage(1);
+    setHasActiveFilters(false);
   };
 
   useEffect(() => {
@@ -100,12 +108,30 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  if (data.length === 0) {
+  if (filteredData.length === 0) {
     return (
-      <div className="row d-flex align-items-center">
-        <div className="col text-center">
-          <p className="text-muted">No tasks available. Please add a new task.</p>
-        </div>
+      <div className="text-center py-5">
+        <img
+          src="https://cdn-icons-png.flaticon.com/512/2748/2748558.png"
+          alt="Empty"
+          width="100"
+          className="mb-3"
+        />
+        <h5 className="fw-bold text-warning">Oops! Nothing here</h5>
+        <p className="text-muted">
+          {hasActiveFilters
+            ? "No tasks match your current filters. Try adjusting your search criteria."
+            : "Looks like you've completed everything 🎉"
+          }
+        </p>
+        {hasActiveFilters && (
+          <button
+            className="btn btn-outline-primary mt-3"
+            onClick={handleClearFilters}
+          >
+            Clear Filters
+          </button>
+        )}
       </div>
     );
   }
@@ -184,10 +210,11 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
                 ref={(el) => { containerRefs.current[task.id] = el; }}
               >
                 <span
-                  className={`badge bg-light text-dark ${styles.statusToggle}`}
+                  className={`badge bg-light text-dark ${styles.statusToggle} d-flex align-items-center`}
                   onClick={() => toggleMenu(task.id)}
                 >
                   {task.status || 'Open'}
+                  <FontAwesomeIcon icon={faChevronDown} className="ms-1" style={{ fontSize: '0.7rem' }} />
                 </span>
                 <div
                   className={styles.statusMenu}

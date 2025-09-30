@@ -14,12 +14,16 @@ const MainContent = ({
   currentUserId,
 }) => {
   const filteredTasks = tasks.filter(task => {
+    // Exclude completed tasks from all filters except 'Completed'
     if (activeFilter !== 'Completed' && !!task.is_done) return false;
+    // Exclude cancelled tasks from all filters except 'Cancelled'
+    if (activeFilter !== 'Cancelled' && task.status === 'Cancelled') return false;
 
     if (activeFilter === 'All') return true;
     if (activeFilter === 'Completed') return !!task.is_done;
     if (activeFilter === 'Important') return !!task.is_important;
     if (activeFilter === 'Favorites') return !!task.is_favorite;
+    if (activeFilter === 'Cancelled') return task.status === 'Cancelled';
 
     if (activeFilter === 'Due Soon') {
       if (!task.due_date) return false;
