@@ -136,9 +136,9 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
     );
   }
 
-  const priorityOrder = ['Urgent', 'High', 'Medium', 'Low'];
+  const priorityOrder = ['urgent', 'high', 'medium', 'low'];
   const groupedTasks = priorityOrder.reduce((acc, priority) => {
-    acc[priority] = currentTasks.filter(task => task.priority === priority);
+    acc[priority] = currentTasks.filter(task => task.priority?.toLowerCase() === priority);
     return acc;
   }, {});
 
@@ -151,14 +151,14 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
         />
       )}
       {priorityOrder.flatMap(priority => {
-        const tasks = groupedTasks[priority];
+        const tasks = groupedTasks[priority] || [];
         return tasks.map(task => (
           <div
             key={task.id}
             className={`row d-flex align-items-center mb-3 ${styles.todoList}  
-          ${task.priority === 'Urgent' ? 'border border-danger border-2'
-                : task.priority === 'High' ? 'border border-warning border-2'
-                  : task.priority === 'Medium' ? 'border border-success border-2'
+          ${task.priority?.toLowerCase() === 'urgent' ? 'border border-danger border-2'
+                : task.priority?.toLowerCase() === 'high' ? 'border border-warning border-2'
+                  : task.priority?.toLowerCase() === 'medium' ? 'border border-success border-2'
                     : 'border border-secondary border-2'
               }`}
             style={{ zIndex: (openMenuById[task.id] || openTaskOptionsById[task.id]) ? 100000 : 1 }}
@@ -235,9 +235,9 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
 
             <div className="col-md-1  d-flex text-center justify-content-center">
               <span className={`badge 
-              ${task.priority === 'Urgent' ? 'bg-danger'
-                  : task.priority === 'High' ? 'bg-warning'
-                    : task.priority === 'Medium' ? 'bg-success'
+              ${task.priority?.toLowerCase() === 'urgent' ? 'bg-danger'
+                  : task.priority?.toLowerCase() === 'high' ? 'bg-warning'
+                    : task.priority?.toLowerCase() === 'medium' ? 'bg-success'
                       : 'bg-secondary'
                 } `}>{task.priority}</span>
 

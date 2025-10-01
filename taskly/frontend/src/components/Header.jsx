@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faBell, faSignOutAlt, faTasks, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faBell, faSignOutAlt, faTasks, faPlus, faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
 import AddButton from './AddButton';
 
-const Header = ({ onAddClick, onLogout, tasks, onOpenAdmin }) => {
+const Header = ({ onAddClick, onLogout, tasks, onOpenAdmin, onGlobalSearch }) => {
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -55,9 +56,32 @@ const Header = ({ onAddClick, onLogout, tasks, onOpenAdmin }) => {
           <FontAwesomeIcon icon={faTasks} size="1x" /> Taskly
         </span>
 
-        {/* <form className="d-flex w-50 mx-3 col-md-4">
-          <input className="form-control me-2" type="search" placeholder="Search tasks..." aria-label="Search" />
-        </form> */}
+        <div className="d-flex w-50 mx-3 col-md-4 position-relative">
+          <input
+            className="form-control me-2"
+            type="search"
+            placeholder="Search tasks..."
+            aria-label="Search"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              onGlobalSearch(e.target.value);
+            }}
+            style={{ paddingRight: searchQuery ? '40px' : '12px' }}
+          />
+          {searchQuery && (
+            <button
+              className="btn btn-link position-absolute"
+              style={{ right: '20px', top: '50%', transform: 'translateY(-50%)', padding: '0', zIndex: 10 }}
+              onClick={() => {
+                setSearchQuery('');
+                onGlobalSearch('');
+              }}
+            >
+              {/* <FontAwesomeIcon icon={faTimes} className="text-muted" /> */}
+            </button>
+          )}
+        </div>
 
 
 
@@ -68,6 +92,7 @@ const Header = ({ onAddClick, onLogout, tasks, onOpenAdmin }) => {
               Admin Panel
             </button>
           )}
+
           <AddButton
             onClick={onAddClick}
             className="me-4 btn-primary-taskly text-white"

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
+
 import Footer from './components/Footer';
 import CreateTaskForm from './components/CreateTaskForm';
 import './App.css';
@@ -32,9 +33,11 @@ const App = () => {
   // isLoggedIn: Tracks if the user is logged in.
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('userId'));
   const [activeFilter, setActiveFilter] = useState('All');
+  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
 
   const [showAdmin, setShowAdmin] = useState(false);
   const isAdmin = localStorage.getItem('userRole') === 'admin';
+
 
   // Add currentUserId state
   const [currentUserId, setCurrentUserId] = useState(localStorage.getItem('userId') || '');
@@ -93,8 +96,8 @@ const App = () => {
 
     const filtered = tasks.filter(t => {
       if (!t.due_date) return false;
-      if (Number(t.is_done) === 1) return false;
-      if (t.status === 'Cancelled') return false; // Exclude cancelled tasks
+      if (t.is_done == 1) return false;
+      if (t.status === 'Cancelled') return false;
       const due = new Date(t.due_date); due.setHours(0, 0, 0, 0);
       const isToday = due.getTime() === today.getTime();
       const isTomorrow = due.getTime() === tomorrow.getTime();
@@ -183,7 +186,7 @@ const App = () => {
         const currentUserId = localStorage.getItem("userId");
         const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${currentUserId}`);
         const data = await taskRes.json();
-        setTasks(data);
+        setTasks(Array.isArray(data) ? data : []);
         setSuccessMessage("Task updated successfully!");
         setTimeout(() => setSuccessMessage(""), 1000);
       } else {
@@ -380,14 +383,13 @@ const App = () => {
   };
 
   // Calculate dynamic counts for TaskFilterCard
-
   const allTasksCount = tasks.length;
-  const importantTasksCount = tasks.filter(task => task.is_important).length;
-  const favoritesCount = tasks.filter(task => task.is_favorite).length;
-  const doneTasksCount = tasks.filter(task => task.is_done).length;
+  const importantTasksCount = tasks.filter(task => task.is_important == 1).length;
+  const favoritesCount = tasks.filter(task => task.is_favorite == 1).length;
+  const doneTasksCount = tasks.filter(task => task.is_done == 1).length;
   const cancelledTaskCount = tasks.filter(task => task.status === 'Cancelled').length;
   const dueSoonTasksCount = tasks.filter(task => {
-    if (!task.due_date || task.is_done) return false;
+    if (!task.due_date || task.is_done == 1 || task.status === 'Cancelled') return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const sevenDaysFromNow = new Date();
@@ -439,7 +441,13 @@ const App = () => {
   return (
     <div className="d-flex flex-column body" style={{ minHeight: '100vh' }}>
       {/* Header */}
-      <Header onAddClick={handleOpenCreate} onLogout={() => handleLogout()} tasks={tasks} onOpenAdmin={() => setShowAdmin(true)} />
+      <Header 
+        onAddClick={handleOpenCreate} 
+        onLogout={handleLogout} 
+        tasks={tasks} 
+        onOpenAdmin={() => setShowAdmin(true)}
+        onGlobalSearch={setGlobalSearchQuery}
+      />
 
       {/* Body: Sidebar + Content */}
       <div className="d-flex flex-grow-1">
@@ -489,6 +497,7 @@ const App = () => {
                   activeFilter={activeFilter}
                   onChangeStatus={handleChangeStatus}
                   currentUserId={currentUserId}
+                  globalSearchQuery={globalSearchQuery}
                 />
               )}
             </div>
