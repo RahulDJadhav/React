@@ -18,7 +18,7 @@ const MainContent = ({
     // First apply global search filter
     if (globalSearchQuery) {
       const query = globalSearchQuery.toLowerCase();
-      const matchesSearch = 
+      const matchesSearch =
         task.title?.toLowerCase().includes(query) ||
         task.description?.toLowerCase().includes(query) ||
         task.priority?.toLowerCase().includes(query) ||
@@ -34,6 +34,12 @@ const MainContent = ({
         return task.is_done == 1;
       case 'Cancelled':
         return task.status === 'Cancelled';
+      case 'On Hold':
+        return task.status === 'On Hold';
+      case 'In Progress':
+        return task.status === 'In Progress';
+      case 'Open':
+        return task.status === 'Open';
       case 'Important':
         return task.is_important == 1 && task.is_done != 1 && task.status !== 'Cancelled';
       case 'Favorites':

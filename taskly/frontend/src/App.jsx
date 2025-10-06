@@ -388,6 +388,9 @@ const App = () => {
   const favoritesCount = tasks.filter(task => task.is_favorite == 1).length;
   const doneTasksCount = tasks.filter(task => task.is_done == 1).length;
   const cancelledTaskCount = tasks.filter(task => task.status === 'Cancelled').length;
+  const onHoldTaskCount = tasks.filter(task => task.status === 'On Hold').length;
+  const inProgressTasksCount = tasks.filter(task => task.status === 'In Progress').length;
+  const openTasksCount = tasks.filter(task => task.status === 'Open').length;
   const dueSoonTasksCount = tasks.filter(task => {
     if (!task.due_date || task.is_done == 1 || task.status === 'Cancelled') return false;
     const today = new Date();
@@ -407,6 +410,9 @@ const App = () => {
     "Completed": doneTasksCount,
     "Due Soon": dueSoonTasksCount,
     "Cancelled": cancelledTaskCount,
+    "On Hold": onHoldTaskCount,
+    "In Progress": inProgressTasksCount,
+    "Open": openTasksCount
   };
 
 
@@ -441,10 +447,10 @@ const App = () => {
   return (
     <div className="d-flex flex-column body" style={{ minHeight: '100vh' }}>
       {/* Header */}
-      <Header 
-        onAddClick={handleOpenCreate} 
-        onLogout={handleLogout} 
-        tasks={tasks} 
+      <Header
+        onAddClick={handleOpenCreate}
+        onLogout={handleLogout}
+        tasks={tasks}
         onOpenAdmin={() => setShowAdmin(true)}
         onGlobalSearch={setGlobalSearchQuery}
       />

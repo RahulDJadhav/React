@@ -1,16 +1,16 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as farHeart, faStar as farStar } from '@fortawesome/free-regular-svg-icons';
-import { faList, faClock, faSquareCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faList, faClock, faSquareCheck, faTimes, faHandHolding, faClipboardList, faSpinner, } from '@fortawesome/free-solid-svg-icons';
 import styles from './TaskFilterCard.module.css';
 
 const TaskFilterCard = ({ activeFilter, onFilterChange, taskCounts }) => {
 
-  let taskItems = ["All", "Important", "Favorites", "Completed", "Due Soon", "Cancelled"];
+  let taskItems = ["All", "Important", "Favorites", "Due Soon", "Open", "In Progress", "On Hold", "Cancelled", "Completed"];
   // let taskItemCounts = [10, 5, 3, 8, 2];
 
   // Use actual icons instead of string names
-  const taskIcons = [faList, farStar, farHeart, faSquareCheck, faClock, faTimes];
+  const taskIcons = [faList, farStar, farHeart, faClock, faClipboardList, faSpinner, faHandHolding, faTimes, faSquareCheck];
 
   return (
     <div className="card shadow-sm border-0">
