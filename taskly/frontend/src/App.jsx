@@ -11,6 +11,7 @@ import AdminPanel from './components/AdminPanel';
 import DueSoonModal from './components/DueSoonModal';
 
 
+
 const App = () => {
 
   // const API_BASE = 'http://localhost/taskly/taskly/backend/';
@@ -35,12 +36,15 @@ const App = () => {
   const [activeFilter, setActiveFilter] = useState('All');
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
 
+
   const [showAdmin, setShowAdmin] = useState(false);
   const isAdmin = localStorage.getItem('userRole') === 'admin';
 
 
   // Add currentUserId state
   const [currentUserId, setCurrentUserId] = useState(localStorage.getItem('userId') || '');
+
+
 
   // Keep currentUserId in sync with localStorage and login state
   useEffect(() => {
@@ -453,6 +457,7 @@ const App = () => {
         tasks={tasks}
         onOpenAdmin={() => setShowAdmin(true)}
         onGlobalSearch={setGlobalSearchQuery}
+
       />
 
       {/* Body: Sidebar + Content */}
@@ -521,6 +526,7 @@ const App = () => {
         onUpdate={handleUpdateTask}
         editingTask={editingTask}
       />
+
     </div>
   );
 };

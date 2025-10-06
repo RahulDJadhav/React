@@ -116,6 +116,7 @@ const Header = ({ onAddClick, onLogout, tasks, onOpenAdmin, onGlobalSearch }) =>
                 onClick={onAddClick}
                 className="btn-primary-taskly text-white btn-sm"
                 label={<><FontAwesomeIcon icon={faPlus} className="me-1" />Add</>}
+
               />
 
               <div className="position-relative" ref={dropdownRef}>
