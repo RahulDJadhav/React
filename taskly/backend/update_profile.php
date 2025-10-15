@@ -54,10 +54,10 @@ if (isset($_FILES['profilePic'])) {
     }
 
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $allowedExts = ['jpg', 'jpeg', 'png', 'gif'];
+    $allowedExts = ['jpg', 'jpeg', 'png'];
     
     if (!in_array($ext, $allowedExts)) {
-        echo json_encode(["success" => false, "message" => "Invalid file type. Use JPG, PNG, or GIF"]);
+        echo json_encode(["success" => false, "message" => "Invalid file type. Use JPG or PNG"]);
         exit;
     }
     

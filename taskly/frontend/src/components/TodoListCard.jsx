@@ -7,7 +7,7 @@ import TaskOptions from './TaskOptions';
 import TaskTextToggle from './TaskTextToggle';
 import Filters from './Filters';
 
-const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onToggleImportant, onChangeStatus }) => {
+const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onToggleImportant, onChangeStatus, isLoadingTasks }) => {
   const isAdmin = localStorage.getItem('userRole') === 'admin';
   const [filteredData, setFilteredData] = useState(data);
   const [currentPage, setCurrentPage] = useState(1);
@@ -15,14 +15,14 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
 
   const handleFilterApply = ({ status, priorityFilter, q }) => {
-    let filtered = data;
+    let filtered = [...data];
 
     if (status) {
       filtered = filtered.filter(task => task.status === status);
     }
 
     if (priorityFilter && priorityFilter !== 'All') {
-      filtered = filtered.filter(task => task.priority === priorityFilter);
+      filtered = filtered.filter(task => task.priority?.toLowerCase() === priorityFilter.toLowerCase());
     }
 
     if (q) {
@@ -33,34 +33,57 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
     }
 
     setFilteredData(filtered);
-    setCurrentPage(1);
+    setCurrentPage(1); // Only reset page when filters are applied
     setHasActiveFilters(!!(status || (priorityFilter && priorityFilter !== 'All') || q));
   };
 
   const handleClearFilters = () => {
-    setFilteredData(data);
+    setFilteredData([...data]);
     setCurrentPage(1);
     setHasActiveFilters(false);
   };
 
   useEffect(() => {
-    setFilteredData(data);
-    setCurrentPage(1);
+    setFilteredData([...data]);
+    // Only reset page if data length changed, not on every data update
+    if (data.length !== filteredData.length) {
+      setCurrentPage(1);
+    }
   }, [data]);
+
+  // Sort all filtered tasks by priority before pagination
+  const priorityOrder = { 'urgent': 1, 'high': 2, 'medium': 3, 'low': 4 };
+  const sortedFilteredData = [...filteredData].sort((a, b) => {
+    const aPriority = priorityOrder[a.priority?.toLowerCase()] || 5;
+    const bPriority = priorityOrder[b.priority?.toLowerCase()] || 5;
+    return aPriority - bPriority;
+  });
 
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentTasks = filteredData.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const currentTasks = sortedFilteredData.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(sortedFilteredData.length / itemsPerPage);
+  
+  // Debug info
+  console.log('Pagination Debug:', {
+    totalTasks: sortedFilteredData.length,
+    currentPage,
+    itemsPerPage,
+    indexOfFirst,
+    indexOfLast,
+    currentTasksCount: currentTasks.length,
+    totalPages
+  });
 
   const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
+    if (page >= 1 && page <= totalPages && page !== currentPage) {
       setCurrentPage(page);
     }
   };
 
   // function to calculate days left
-  const calculateDaysLeft = (dueDate) => {
+  const calculateDaysLeft = (dueDate, isCompleted = false) => {
+    if (isCompleted) return "Completed ✓";
     if (!dueDate) return '';
 
     const today = new Date();
@@ -108,7 +131,18 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  if (filteredData.length === 0) {
+  if (isLoadingTasks) {
+    return (
+      <div className="text-center py-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <p className="mt-3 text-muted">Loading tasks...</p>
+      </div>
+    );
+  }
+
+  if (sortedFilteredData.length === 0) {
     return (
       <div className="text-center py-5">
         <img
@@ -136,11 +170,7 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
     );
   }
 
-  const priorityOrder = ['urgent', 'high', 'medium', 'low'];
-  const groupedTasks = priorityOrder.reduce((acc, priority) => {
-    acc[priority] = currentTasks.filter(task => task.priority?.toLowerCase() === priority);
-    return acc;
-  }, {});
+  // Tasks are already sorted by priority, no need to group them
 
   return (
     <div className="container">
@@ -150,9 +180,7 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
           showUserFilter={false}
         />
       )}
-      {priorityOrder.flatMap(priority => {
-        const tasks = groupedTasks[priority] || [];
-        return tasks.map(task => (
+      {currentTasks.length > 0 ? currentTasks.map(task => (
           <div
             key={task.id}
             className={`row d-flex align-items-center mb-3 ${styles.todoList}  
@@ -198,10 +226,12 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
               <span className="text-muted small">{task.due_date}</span>
               <br />
               <span
-                className={`fw-semibold small 
-                  ${calculateDaysLeft(task.due_date).includes("Overdue") ? "text-danger" : "text-success"}`}
+                className={`fw-semibold small ${
+                  task.status === 'Completed' ? "text-success" :
+                  calculateDaysLeft(task.due_date).includes("Overdue") ? "text-danger" : "text-success"
+                }`}
               >
-                {calculateDaysLeft(task.due_date)}
+                {calculateDaysLeft(task.due_date, task.status === 'Completed')}
               </span>
             </div>
             <div className="col-md-2 text-center">
@@ -236,9 +266,9 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
             <div className="col-md-1  d-flex text-center justify-content-center">
               <span className={`badge 
               ${task.priority?.toLowerCase() === 'urgent' ? 'bg-danger'
-                  : task.priority?.toLowerCase() === 'high' ? 'bg-warning'
+                  : task.priority?.toLowerCase() === 'high' ? 'bg-warning text-dark'
                     : task.priority?.toLowerCase() === 'medium' ? 'bg-success'
-                      : 'bg-secondary'
+                      : task.priority?.toLowerCase() === 'low' ? 'bg-secondary' : 'bg-light text-dark'
                 } `}>{task.priority}</span>
 
             </div>
@@ -253,8 +283,11 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
               </div>
             </div>
           </div>
-        ));
-      })}
+        )) : (
+          <div className="text-center py-3">
+            <p>No tasks found on this page</p>
+          </div>
+        )}}
 
       {/* Pagination */}
       {totalPages > 1 && (
@@ -270,7 +303,7 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
               </li>
             ))}
 
-            <li className={`page-item ${currentPage === totalPages && 'disabled'}`}>
+            <li className={`page-item ${currentPage >= totalPages && 'disabled'}`}>
               <button className="page-link" onClick={() => handlePageChange(currentPage + 1)}>Next</button>
             </li>
           </ul>

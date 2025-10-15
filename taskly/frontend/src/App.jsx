@@ -18,6 +18,7 @@ const App = () => {
   const API_BASE = process.env.REACT_APP_API_URL;
   // tasks: Array holding all todo tasks
   const [tasks, setTasks] = useState([]);
+  const [isLoadingTasks, setIsLoadingTasks] = useState(true);
   const [dueSoonTasks, setDueSoonTasks] = useState([]);
   const [showDueModal, setShowDueModal] = useState(false);
   const [hasShownDueModal, setHasShownDueModal] = useState(false);
@@ -31,25 +32,82 @@ const App = () => {
   // formRef: Reference to control the Create/Edit Task modal.
   const formRef = useRef();
 
-  // isLoggedIn: Tracks if the user is logged in.
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('userId'));
+  // User state management
+  const [user, setUser] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [lastActivity, setLastActivity] = useState(Date.now());
   const [activeFilter, setActiveFilter] = useState('All');
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
 
-
   const [showAdmin, setShowAdmin] = useState(false);
-  const isAdmin = localStorage.getItem('userRole') === 'admin';
-
+  const isAdmin = user?.role === 'admin';
+  const [showNotificationPopup, setShowNotificationPopup] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [lastNotificationId, setLastNotificationId] = useState(null);
 
   // Add currentUserId state
-  const [currentUserId, setCurrentUserId] = useState(localStorage.getItem('userId') || '');
+  const currentUserId = user?.id || '';
 
 
 
-  // Keep currentUserId in sync with localStorage and login state
+
+
+  // Load user from localStorage on app start
   useEffect(() => {
-    setCurrentUserId(localStorage.getItem('userId') || '');
-  }, [isLoggedIn]);
+    const savedUser = localStorage.getItem('taskly_user');
+    const savedActivity = localStorage.getItem('taskly_last_activity');
+    
+    if (savedUser && savedActivity) {
+      const timeDiff = Date.now() - parseInt(savedActivity);
+      const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds
+      
+      if (timeDiff < oneHour) {
+        setUser(JSON.parse(savedUser));
+        setIsLoggedIn(true);
+        setLastActivity(Date.now());
+      } else {
+        localStorage.removeItem('taskly_user');
+        localStorage.removeItem('taskly_last_activity');
+      }
+    }
+  }, []);
+
+  // Track user activity and auto-logout
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    
+    const updateActivity = () => {
+      const now = Date.now();
+      setLastActivity(now);
+      localStorage.setItem('taskly_last_activity', now.toString());
+    };
+    
+    const checkInactivity = () => {
+      const timeDiff = Date.now() - lastActivity;
+      const oneHour = 60 * 60 * 1000;
+      
+      if (timeDiff >= oneHour) {
+        handleLogout();
+        alert('Session expired due to inactivity. Please login again.');
+      }
+    };
+    
+    // Update activity on user interactions
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    events.forEach(event => {
+      document.addEventListener(event, updateActivity, true);
+    });
+    
+    // Check inactivity every minute
+    const inactivityCheck = setInterval(checkInactivity, 60000);
+    
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, updateActivity, true);
+      });
+      clearInterval(inactivityCheck);
+    };
+  }, [isLoggedIn, lastActivity]);
 
   // Reset due modal state on login changes
   useEffect(() => {
@@ -61,12 +119,33 @@ const App = () => {
     }
   }, [isLoggedIn]);
 
+  // Check for notifications
+  useEffect(() => {
+    if (user?.id) {
+      const checkNotifications = () => {
+        fetch(`${API_BASE}getUserNotifications.php?user_id=${user.id}`)
+          .then(r => r.json())
+          .then(data => {
+            if (data && data.message && data.timestamp !== lastNotificationId) {
+              setNotificationMessage(data.message);
+              setShowNotificationPopup(true);
+              setLastNotificationId(data.timestamp);
+            }
+          })
+          .catch(() => {});
+      };
+      
+      checkNotifications();
+      const interval = setInterval(checkNotifications, 3000); // Check every 3 seconds
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
   // Fetch tasks for the logged-in user
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
-
-    if (userId) {
-      fetch(`${API_BASE}getTasks.php?user_id=${userId}`)
+    if (user?.id) {
+      setIsLoadingTasks(true);
+      fetch(`${API_BASE}getTasks.php?user_id=${user.id}`)
         .then(response => response.json())
         .then(data => {
           if (Array.isArray(data)) {
@@ -79,12 +158,16 @@ const App = () => {
         .catch(error => {
           console.error("Fetch failed:", error);
           setTasks([]);
+        })
+        .finally(() => {
+          setIsLoadingTasks(false);
         });
     } else {
       // If no user is logged in, clear tasks
       setTasks([]);
+      setIsLoadingTasks(false);
     }
-  }, [isLoggedIn]); // Re-fetch when login status changes
+  }, [user]); // Re-fetch when user changes
 
   // Compute and show due-soon modal (today or tomorrow, not done). Only once per login.
   useEffect(() => {
@@ -118,8 +201,7 @@ const App = () => {
   };
 
   const handleAddTask = (newTask) => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
+    if (!user?.id) {
       alert("Please log in to add tasks.");
       return;
     }
@@ -130,7 +212,7 @@ const App = () => {
       is_important: false,
       is_favorite: false,
       is_done: false,
-      user_id: userId // Always include user_id
+      user_id: user.id // Always include user_id
     };
 
     fetch(`${API_BASE}addTask.php`, {
@@ -142,8 +224,7 @@ const App = () => {
       .then(data => {
         if (data.message && data.message.includes("successfully")) {
           // Re-fetch tasks only on success
-          const currentUserId = localStorage.getItem("userId");
-          fetch(`${API_BASE}getTasks.php?user_id=${currentUserId}`)
+          fetch(`${API_BASE}getTasks.php?user_id=${user.id}`)
             .then(res => res.json())
             .then(data => {
               setTasks(data);
@@ -166,8 +247,7 @@ const App = () => {
 
   // UPDATE
   const handleUpdateTask = async (updatedTask) => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
+    if (!user?.id) {
       alert("Please log in to update tasks.");
       return;
     }
@@ -179,7 +259,7 @@ const App = () => {
         },
         body: JSON.stringify({
           ...updatedTask,
-          user_id: userId
+          user_id: user.id
         })
       });
 
@@ -187,8 +267,7 @@ const App = () => {
 
       if (result.message && result.message.toLowerCase().includes("success")) {
         // Refresh the task list
-        const currentUserId = localStorage.getItem("userId");
-        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${currentUserId}`);
+        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${user.id}`);
         const data = await taskRes.json();
         setTasks(Array.isArray(data) ? data : []);
         setSuccessMessage("Task updated successfully!");
@@ -204,8 +283,7 @@ const App = () => {
 
   // DELETE
   const handleDeleteTask = async (id) => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
+    if (!user?.id) {
       alert("Please log in to delete tasks.");
       return;
     }
@@ -216,15 +294,14 @@ const App = () => {
       const res = await fetch(`${API_BASE}deleteTask.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, user_id: userId })
+        body: JSON.stringify({ id, user_id: user.id })
       });
 
       const result = await res.json();
 
       if (result.message && result.message.toLowerCase().includes("success")) {
         // Refresh the task list
-        const currentUserId = localStorage.getItem("userId");
-        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${currentUserId}`);
+        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${user.id}`);
         const data = await taskRes.json();
         setTasks(data);
         setSuccessMessage("Task deleted successfully!");
@@ -253,8 +330,7 @@ const App = () => {
 
   //Done
   const handleDoneTask = async (id, isCurrentlyDone) => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
+    if (!user?.id) {
       alert("Please log in to update task status.");
       return;
     }
@@ -274,14 +350,13 @@ const App = () => {
       const res = await fetch(`${API_BASE}updateStatus.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, is_done: newDoneStatus, status: newStatus, user_id: userId })
+        body: JSON.stringify({ id, is_done: newDoneStatus, status: newStatus, user_id: user.id })
       });
 
       const result = await res.json();
 
       if (result.message && result.message.toLowerCase().includes("updated")) {
-        const currentUserId = localStorage.getItem("userId");
-        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${currentUserId}`);
+        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${user.id}`);
         const data = await taskRes.json();
         setTasks(data);
         setSuccessMessage("Task status updated successfully!");
@@ -297,8 +372,7 @@ const App = () => {
 
   // Toggle Favorite
   const handleToggleFavorite = async (id, currentValue) => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
+    if (!user?.id) {
       alert("Please log in to update favorite status.");
       return;
     }
@@ -307,13 +381,12 @@ const App = () => {
       const res = await fetch(`${API_BASE}toggleFavorite.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, user_id: userId, is_favorite: currentValue ? 0 : 1 })
+        body: JSON.stringify({ id, user_id: user.id, is_favorite: currentValue ? 0 : 1 })
       });
       const result = await res.json();
 
       if (result.message && result.message.toLowerCase().includes("updated")) {
-        const currentUserId = localStorage.getItem("userId");
-        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${currentUserId}`);
+        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${user.id}`);
         const data = await taskRes.json();
         setTasks(data);
       }
@@ -324,8 +397,7 @@ const App = () => {
 
   // Toggle Important
   const handleToggleImportant = async (id, currentValue) => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
+    if (!user?.id) {
       alert("Please log in to update important status.");
       return;
     }
@@ -334,13 +406,12 @@ const App = () => {
       const res = await fetch(`${API_BASE}toggleImportant.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, user_id: userId, is_important: currentValue ? 0 : 1 })
+        body: JSON.stringify({ id, user_id: user.id, is_important: currentValue ? 0 : 1 })
       });
       const result = await res.json();
 
       if (result.message && result.message.toLowerCase().includes("updated")) {
-        const currentUserId = localStorage.getItem("userId");
-        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${currentUserId}`);
+        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${user.id}`);
         const data = await taskRes.json();
         setTasks(data);
       }
@@ -357,8 +428,7 @@ const App = () => {
 
   // Change status directly from card
   const handleChangeStatus = async (task, newStatus) => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
+    if (!user?.id) {
       alert("Please log in to update task status.");
       return;
     }
@@ -369,12 +439,11 @@ const App = () => {
       const res = await fetch(`${API_BASE}updateStatus.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: task.id, is_done: newDone, status: newStatus, user_id: userId })
+        body: JSON.stringify({ id: task.id, is_done: newDone, status: newStatus, user_id: user.id })
       });
       const result = await res.json();
       if (result.message && result.message.toLowerCase().includes("updated")) {
-        const currentUserId = localStorage.getItem("userId");
-        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${currentUserId}`);
+        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${user.id}`);
         const data = await taskRes.json();
         setTasks(data);
       } else {
@@ -420,34 +489,30 @@ const App = () => {
   };
 
 
-  // Purpose: If the user is not logged in, show the login page.
-  // After login: The main app is rendered.
-  useEffect(() => {
-    const checkLoggedIn = () => {
-      if (localStorage.getItem("userId")) {
-        setIsLoggedIn(true);
-      } else {
-        setIsLoggedIn(false);
-      }
-    };
-    checkLoggedIn();
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setIsLoggedIn(true);
+    setLastActivity(Date.now());
+    localStorage.setItem('taskly_user', JSON.stringify(userData));
+    localStorage.setItem('taskly_last_activity', Date.now().toString());
+  };
 
-    // Listen for storage changes from other tabs/windows if needed
-    window.addEventListener('storage', checkLoggedIn);
-    return () => {
-      window.removeEventListener('storage', checkLoggedIn);
-    };
-  }, []);
+  const handleUserUpdate = (updatedUser) => {
+    setUser(updatedUser);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setIsLoggedIn(false);
+    setTasks([]);
+    setShowAdmin(false);
+    localStorage.removeItem('taskly_user');
+    localStorage.removeItem('taskly_last_activity');
+  };
 
   if (!isLoggedIn) {
-    return <Login onLogin={() => setIsLoggedIn(true)} />;
+    return <Login onLogin={handleLogin} />;
   }
-  const handleLogout = () => {
-    localStorage.removeItem("userId");
-    localStorage.removeItem("userRole");
-    sessionStorage.clear();
-    setIsLoggedIn(false);
-  };
   return (
     <div className="d-flex flex-column body" style={{ minHeight: '100vh' }}>
       {/* Header */}
@@ -457,7 +522,7 @@ const App = () => {
         tasks={tasks}
         onOpenAdmin={() => setShowAdmin(true)}
         onGlobalSearch={setGlobalSearchQuery}
-
+        user={user}
       />
 
       {/* Body: Sidebar + Content */}
@@ -469,6 +534,8 @@ const App = () => {
             onFilterChange={handleFilterChange}
             taskCounts={taskCounts}
             showAdminPanel={showAdmin}
+            user={user}
+            onUserUpdate={handleUserUpdate}
           />
         </div>
 
@@ -492,6 +559,33 @@ const App = () => {
                   </div>
                 </div>
               )}
+              {showNotificationPopup && (
+                <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style={{ zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                  <div className="rounded-4 shadow-lg p-4 text-center text-white position-relative" style={{
+                    minWidth: '400px',
+                    background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
+                    animation: 'fadeIn 0.3s ease-in',
+                    border: '3px solid rgba(255,255,255,0.2)'
+                  }}>
+                    <button 
+                      className="btn-close btn-close-white position-absolute" 
+                      style={{ top: '15px', right: '15px' }}
+                      onClick={() => setShowNotificationPopup(false)}
+                    ></button>
+                    <div className="mb-3" style={{ color: '#fff' }}>
+                      <i className="fas fa-bell" style={{ fontSize: '3rem', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}></i>
+                    </div>
+                    <h5 className="mb-3" style={{ fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>Admin Notification</h5>
+                    <p className="mb-3" style={{ fontSize: '1rem', opacity: '0.9' }}>{notificationMessage}</p>
+                    <button 
+                      className="btn btn-light btn-sm" 
+                      onClick={() => setShowNotificationPopup(false)}
+                    >
+                      Got it!
+                    </button>
+                  </div>
+                </div>
+              )}
               {showDueModal && (
                 <DueSoonModal tasks={dueSoonTasks} onClose={handleDismissDueModal} />
               )}
@@ -509,6 +603,7 @@ const App = () => {
                   onChangeStatus={handleChangeStatus}
                   currentUserId={currentUserId}
                   globalSearchQuery={globalSearchQuery}
+                  isLoadingTasks={isLoadingTasks}
                 />
               )}
             </div>

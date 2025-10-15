@@ -10,7 +10,7 @@ header("Content-Type: application/json");
 
 require 'db.php';
 
-$sql = "SELECT id, name, email, role FROM users ORDER BY name ASC";
+$sql = "SELECT id, name, email, role FROM users WHERE role != 'hr' ORDER BY name ASC";
 $res = $conn->query($sql);
 
 $users = [];
@@ -18,3 +18,4 @@ while ($row = $res->fetch_assoc()) {
   $users[] = $row;
 }
 echo json_encode($users);
+$conn->close();

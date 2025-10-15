@@ -6,7 +6,7 @@ import styles from "./Profile.module.css";
 // const API_BASE = "http://localhost/taskly/taskly/backend/";
 const API_BASE = process.env.REACT_APP_API_URL;
 
-export default function Profile() {
+export default function Profile({ user: currentUser, onUserUpdate }) {
   const [user, setUser] = useState({ id: "", name: "", email: "", profilePic: "" });
   const [newName, setNewName] = useState("");
   const [newFile, setNewFile] = useState(null);
@@ -16,12 +16,13 @@ export default function Profile() {
   const [msgType, setMsgType] = useState("success"); // "success" | "error"
 
   useEffect(() => {
-    const id = localStorage.getItem("userId");
-    if (id) {
+    console.log('Profile component received user:', currentUser);
+    if (currentUser?.id) {
       // Fetch user profile from backend
-      fetch(`${API_BASE}get_profile.php?id=${id}`)
+      fetch(`${API_BASE}get_profile.php?id=${currentUser.id}`)
         .then(res => res.json())
         .then(data => {
+          console.log('Profile API response:', data);
           if (data.success) {
             setUser({
               id: data.data.id,
@@ -30,24 +31,30 @@ export default function Profile() {
               profilePic: data.data.profile_pic || ""
             });
           } else {
-            // Fallback to localStorage if backend fails
-            const name = localStorage.getItem("userName");
-            const email = localStorage.getItem("userEmail");
-            if (name && email) {
-              setUser({ id, name, email, profilePic: "" });
-            }
+            // Fallback to current user data
+            console.log('Using fallback user data');
+            setUser({
+              id: currentUser.id,
+              name: currentUser.name,
+              email: currentUser.email,
+              profilePic: ""
+            });
           }
         })
-        .catch(() => {
-          // Fallback to localStorage on error
-          const name = localStorage.getItem("userName");
-          const email = localStorage.getItem("userEmail");
-          if (name && email) {
-            setUser({ id, name, email, profilePic: "" });
-          }
+        .catch((error) => {
+          // Fallback to current user data on error
+          console.log('Profile API error, using fallback:', error);
+          setUser({
+            id: currentUser.id,
+            name: currentUser.name,
+            email: currentUser.email,
+            profilePic: ""
+          });
         });
+    } else {
+      console.log('No current user provided to Profile');
     }
-  }, []);
+  }, [currentUser]);
 
   // Auto-hide messages after 3 seconds
   useEffect(() => {
@@ -92,7 +99,10 @@ export default function Profile() {
           profilePic: data.profilePicUrl || user.profilePic,
         };
         setUser(updated);
-        localStorage.setItem("userName", updated.name);
+        // Notify parent component of user update
+        if (onUserUpdate) {
+          onUserUpdate(updated);
+        }
 
         setMsgType("success");
         setMsg("Profile updated successfully ✅");
@@ -187,3 +197,4 @@ export default function Profile() {
     </div>
   );
 }
+

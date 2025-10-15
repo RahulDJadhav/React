@@ -13,6 +13,7 @@ const MainContent = ({
   onChangeStatus,
   currentUserId,
   globalSearchQuery,
+  isLoadingTasks,
 }) => {
   const filteredTasks = tasks.filter(task => {
     // First apply global search filter
@@ -78,6 +79,7 @@ const MainContent = ({
           onToggleImportant={onToggleImportant}
           activeFilter={activeFilter}
           onChangeStatus={onChangeStatus}
+          isLoadingTasks={isLoadingTasks}
         />
       </div>
     </div>

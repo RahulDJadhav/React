@@ -7,8 +7,11 @@ export default function AdminPanel({ onClose, role = "admin" }) {
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState('tasks');
+  const [editingTask, setEditingTask] = useState(null);
+  const [editForm, setEditForm] = useState({ priority: '', due_date: '' });
 
 
   const [priorityFilter, setPriorityFilter] = useState("All");
@@ -17,11 +20,19 @@ export default function AdminPanel({ onClose, role = "admin" }) {
     ? tasks
     : tasks.filter(t => t.priority === priorityFilter);
 
+  // Sort filtered tasks by priority
+  const priorityOrder = { 'urgent': 1, 'high': 2, 'medium': 3, 'low': 4 };
+  const sortedFilteredTasks = [...filteredTasks].sort((a, b) => {
+    const aPriority = priorityOrder[a.priority?.toLowerCase()] || 5;
+    const bPriority = priorityOrder[b.priority?.toLowerCase()] || 5;
+    return aPriority - bPriority;
+  });
+
   const [itemsPerPage] = useState(5);
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentTasks = filteredTasks.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
+  const currentTasks = sortedFilteredTasks.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(sortedFilteredTasks.length / itemsPerPage);
 
   const fetchUsers = () => {
     fetch(`${API_BASE}getUsers.php`)
@@ -43,7 +54,10 @@ export default function AdminPanel({ onClose, role = "admin" }) {
       .then(r => r.json())
       .then(data => Array.isArray(data) ? setTasks(data) : setTasks([]))
       .catch(() => setTasks([]))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setInitialLoading(false);
+      });
   };
 
   const handleApplyFilters = (filters) => {
@@ -58,7 +72,7 @@ export default function AdminPanel({ onClose, role = "admin" }) {
     if (!window.confirm('Are you sure? This will delete the user and all their tasks.')) return;
     
     try {
-      const response = await fetch('http://localhost/React/taskly/backend/deleteUser.php', {
+      const response = await fetch(`${API_BASE}deleteUser.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +101,8 @@ export default function AdminPanel({ onClose, role = "admin" }) {
     }
   };
 
-  const calculateDaysLeft = (dueDate) => {
+  const calculateDaysLeft = (dueDate, isCompleted = false) => {
+    if (isCompleted) return "Completed ✓";
     if (!dueDate) return '';
     const today = new Date();
     const due = new Date(dueDate);
@@ -103,6 +118,38 @@ export default function AdminPanel({ onClose, role = "admin" }) {
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
+    }
+  };
+
+  const handleEditTask = (task) => {
+    setEditingTask(task);
+    setEditForm({ priority: task.priority || '', due_date: task.due_date || '' });
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      const response = await fetch(`${API_BASE}updateTaskAdmin.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          task_id: editingTask.id,
+          priority: editForm.priority,
+          due_date: editForm.due_date,
+          user_id: editingTask.user_id,
+          old_priority: editingTask.priority,
+          old_due_date: editingTask.due_date
+        })
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert('Task updated and user notified!');
+        setEditingTask(null);
+        fetchTasks();
+      } else {
+        alert(result.message || 'Failed to update task');
+      }
+    } catch (error) {
+      alert('Error: ' + error.message);
     }
   };
 
@@ -161,7 +208,14 @@ export default function AdminPanel({ onClose, role = "admin" }) {
       <div className="card shadow-sm border-0">
         <div className="card-body p-0">
           {activeTab === 'tasks' ? (
-            currentTasks.length === 0 ? (
+            initialLoading ? (
+              <div className="text-center py-5">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <p className="mt-3 text-muted">Loading tasks...</p>
+              </div>
+            ) : currentTasks.length === 0 ? (
               <div className="text-center py-5">
                 <img src="https://cdn-icons-png.flaticon.com/512/2748/2748558.png" alt="Empty" width="100" className="mb-3" />
                 <h5 className="fw-bold text-warning">Oops! Nothing here</h5>
@@ -179,7 +233,7 @@ export default function AdminPanel({ onClose, role = "admin" }) {
                         <th>Days Left</th>
                         <th>Priority</th>
                         <th>Status</th>
-                        <th>Flags</th>
+                        <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -193,12 +247,20 @@ export default function AdminPanel({ onClose, role = "admin" }) {
                           <td>{t.title}</td>
                           <td><span className="text-muted small">{t.due_date || '-'}</span></td>
                           <td>
-                            <span className={`fw-semibold small ${calculateDaysLeft(t.due_date).includes("Overdue") ? "text-danger" : "text-success"}`}>
-                              {calculateDaysLeft(t.due_date)}
+                            <span className={`fw-semibold small ${
+                              t.status === 'Completed' ? "text-success" :
+                              calculateDaysLeft(t.due_date).includes("Overdue") ? "text-danger" : "text-success"
+                            }`}>
+                              {calculateDaysLeft(t.due_date, t.status === 'Completed')}
                             </span>
                           </td>
                           <td>
-                            <span className={`badge ${t.priority === 'High' ? 'bg-danger' : t.priority === 'Medium' ? 'bg-warning text-dark' : 'bg-secondary'}`}>
+                            <span className={`badge ${
+                              t.priority?.toLowerCase() === 'urgent' ? 'bg-danger' : 
+                              t.priority?.toLowerCase() === 'high' ? 'bg-warning text-dark' : 
+                              t.priority?.toLowerCase() === 'medium' ? 'bg-success' : 
+                              t.priority?.toLowerCase() === 'low' ? 'bg-secondary' : 'bg-light text-dark'
+                            }`}>
                               {t.priority || '-'}
                             </span>
                           </td>
@@ -208,9 +270,13 @@ export default function AdminPanel({ onClose, role = "admin" }) {
                             </span>
                           </td>
                           <td>
-                            {t.is_important && <span className="badge bg-danger me-1">★ Imp</span>}
-                            {t.is_favorite && <span className="badge bg-warning text-dark me-1">❤ Fav</span>}
-                            {t.is_done && <span className="badge bg-success">✓ Completed</span>}
+                            <button 
+                              className="btn btn-sm btn-outline-primary" 
+                              onClick={() => handleEditTask(t)}
+                              title="Edit Task"
+                            >
+                              ✏️ Edit
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -280,6 +346,50 @@ export default function AdminPanel({ onClose, role = "admin" }) {
           )}
         </div>
       </div>
+
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <div className="modal show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Edit Task: {editingTask.title}</h5>
+                <button className="btn-close" onClick={() => setEditingTask(null)}></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label className="form-label">Priority</label>
+                  <select 
+                    className="form-select" 
+                    value={editForm.priority} 
+                    onChange={(e) => setEditForm({...editForm, priority: e.target.value})}
+                  >
+                    <option value="">Select Priority</option>
+                    <option value="urgent">Urgent</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Due Date</label>
+                  <input 
+                    type="date" 
+                    className="form-control" 
+                    value={editForm.due_date} 
+                    onChange={(e) => setEditForm({...editForm, due_date: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setEditingTask(null)}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleSaveEdit}>Save Changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
 
 
     </div>

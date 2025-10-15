@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     // Delete user's tasks first (if tasks table exists)
-    $stmt1 = $conn->prepare("DELETE FROM tasks WHERE user_id = ?");
+    $stmt1 = $conn->prepare("DELETE FROM todotasks WHERE user_id = ?");
     if ($stmt1) {
         $stmt1->bind_param("i", $userId);
         $stmt1->execute();

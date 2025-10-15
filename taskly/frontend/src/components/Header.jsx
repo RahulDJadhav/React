@@ -3,16 +3,22 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faBell, faSignOutAlt, faTasks, faPlus, faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
 import AddButton from './AddButton';
 
-const Header = ({ onAddClick, onLogout, tasks, onOpenAdmin, onGlobalSearch }) => {
+const Header = ({ onAddClick, onLogout, tasks, onOpenAdmin, onGlobalSearch, user }) => {
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef(null);
 
+  const API_BASE = process.env.REACT_APP_API_URL;
+
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const today = new Date().toISOString().split('T')[0];
     const dueToday = tasks.filter(task => task.due_date === today);
-    setNotifications(dueToday.map(task => ({ ...task, read: false })));
+    setNotifications(dueToday.map(task => ({ 
+      id: `due_${task.id}`, 
+      message: `Task '${task.title}' is due today!`,
+      read: false
+    })));
   }, [tasks]);
 
   const toggleDropdown = () => setShowDropdown(prev => !prev);
@@ -106,7 +112,7 @@ const Header = ({ onAddClick, onLogout, tasks, onOpenAdmin, onGlobalSearch }) =>
           {/* Actions Section */}
           <div className="col-md-3">
             <div className='d-flex align-items-center justify-content-end gap-2'>
-              {localStorage.getItem('userRole') === 'admin' && (
+              {user?.role === 'admin' && (
                 <button className="btn btn-outline-primary btn-sm" onClick={onOpenAdmin}>
                   Admin Panel
                 </button>
@@ -155,7 +161,7 @@ const Header = ({ onAddClick, onLogout, tasks, onOpenAdmin, onGlobalSearch }) =>
                           style={{ cursor: 'pointer' }}
                           onClick={() => handleNotificationClick(n.id)}
                         >
-                          Task <strong>{n.title}</strong> is due today!
+                          {n.message || `Task ${n.title} is due today!`}
                         </div>
                       ))
                     )}

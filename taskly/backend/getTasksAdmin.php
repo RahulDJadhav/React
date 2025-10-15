@@ -37,7 +37,7 @@ if ($q !== '') {
   $types .= 'ss';
 }
 
-$where = $clauses ? ('WHERE ' . implode(' AND ', $clauses)) : '';
+$where = $clauses ? implode(' AND ', $clauses) : '';
 
 $sql = "
   SELECT
@@ -46,7 +46,7 @@ $sql = "
     u.name AS user_name, u.email AS user_email
   FROM todotasks t
   LEFT JOIN users u ON u.id = t.user_id
-  $where
+  WHERE u.role != 'hr' " . ($where ? "AND " . str_replace('WHERE ', '', $where) : '') . "
   ORDER BY u.name ASC, t.due_date ASC, t.id DESC
 ";
 
