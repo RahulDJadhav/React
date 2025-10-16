@@ -36,6 +36,7 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
 
@@ -70,6 +71,7 @@ const App = () => {
         localStorage.removeItem('taskly_last_activity');
       }
     }
+    setIsCheckingSession(false);
   }, []);
 
   // Track user activity and auto-logout
@@ -510,6 +512,19 @@ const App = () => {
     localStorage.removeItem('taskly_last_activity');
   };
 
+  if (isCheckingSession) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-3 text-muted">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+  
   if (!isLoggedIn) {
     return <Login onLogin={handleLogin} />;
   }

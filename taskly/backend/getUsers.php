@@ -10,7 +10,7 @@ header("Content-Type: application/json");
 
 require 'db.php';
 
-$sql = "SELECT id, name, email, role FROM users WHERE role != 'hr' ORDER BY name ASC";
+$sql = "SELECT id, name, email, role FROM users WHERE role NOT IN ('hr', 'admin') ORDER BY name ASC";
 $res = $conn->query($sql);
 
 $users = [];
