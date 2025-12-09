@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTasks, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import AddButton from './AddButton';
+import ForgotPassword from './ForgotPassword';
 import styles from './Login.module.css';
 
 const Login = ({ onLogin }) => {
@@ -17,6 +18,7 @@ const Login = ({ onLogin }) => {
   const [isSignup, setIsSignup] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -253,7 +255,10 @@ const Login = ({ onLogin }) => {
                 <a
                   href="#"
                   className={styles.toggleLink}
-                  onClick={(e) => e.preventDefault()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowForgotPassword(true);
+                  }}
                 >
                   Forgot Password?
                 </a>
@@ -262,6 +267,11 @@ const Login = ({ onLogin }) => {
           </form>
         </div>
       </div>
+      
+      <ForgotPassword 
+        show={showForgotPassword} 
+        onClose={() => setShowForgotPassword(false)} 
+      />
     </div>
   );
 };

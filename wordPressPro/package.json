@@ -1,0 +1,15 @@
+{
+  "name": "elementor-plugin-system",
+  "version": "1.0.0",
+  "description": "A plugin and socket system similar to Elementor",
+  "type": "module",
+  "main": "src/core/ElementorSystem.js",
+  "scripts": {
+    "start": "node src/examples/usage.js",
+    "advanced": "node src/examples/advanced-usage.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": ["plugin", "socket", "elementor", "widgets", "modular"],
+  "author": "Your Name",
+  "license": "MIT"
+}

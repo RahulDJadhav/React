@@ -70,42 +70,75 @@ const Header = ({ onAddClick, onLogout, tasks, onOpenAdmin, onGlobalSearch, user
           {/* Search Section */}
           <div className="col-md-6">
             <div className="position-relative mx-auto" style={{ maxWidth: '500px' }}>
-              <input
-                className="form-control"
-                type="search"
-                placeholder="Search tasks, descriptions, priorities..."
-                aria-label="Search"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  onGlobalSearch(e.target.value);
-                }}
-                style={{
-                  paddingRight: searchQuery ? '40px' : '12px',
-                  borderRadius: '25px',
-                  border: '2px solid #e9ecef',
-                  fontSize: '14px'
-                }}
-              />
-              {searchQuery && (
-                <button
-                  className="btn btn-link position-absolute"
+              <div className="position-relative">
+                <FontAwesomeIcon 
+                  icon={faSearch} 
+                  className="position-absolute"
                   style={{
-                    right: '10px',
+                    left: '15px',
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    padding: '0',
-                    zIndex: 10,
-                    color: '#6c757d'
+                    color: '#6c757d',
+                    zIndex: 10
                   }}
-                  onClick={() => {
-                    setSearchQuery('');
-                    onGlobalSearch('');
+                />
+                <input
+                  className="form-control shadow-sm"
+                  type="text"
+                  placeholder="Search tasks, descriptions, priorities..."
+                  aria-label="Search"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    onGlobalSearch(e.target.value);
                   }}
-                >
-                  {/* <FontAwesomeIcon icon={faTimes} /> */}
-                </button>
-              )}
+                  style={{
+                    paddingLeft: '45px',
+                    paddingRight: searchQuery ? '45px' : '15px',
+                    borderRadius: '30px',
+                    border: '2px solid #e3f2fd',
+                    fontSize: '14px',
+                    background: 'linear-gradient(145deg, #ffffff, #f8f9fa)',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.border = '2px solid #4d46e1';
+                    e.target.style.boxShadow = '0 4px 20px rgba(77, 70, 225, 0.2)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.border = '2px solid #e3f2fd';
+                    e.target.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+                  }}
+                />
+                {searchQuery && (
+                  <button
+                    className="btn position-absolute"
+                    style={{
+                      right: '8px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      padding: '4px 8px',
+                      zIndex: 10,
+                      background: '#f8f9fa',
+                      border: 'none',
+                      borderRadius: '50%',
+                      color: '#6c757d',
+                      width: '30px',
+                      height: '30px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    onClick={() => {
+                      setSearchQuery('');
+                      onGlobalSearch('');
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faTimes} size="sm" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 

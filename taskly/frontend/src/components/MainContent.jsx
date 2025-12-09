@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import CategoryControls from './CategoryControls';
 import TodoListCard from './TodoListCard';
+import EnhancedTodoList from './EnhancedTodoList';
+import PriorityGroupedTasks from './PriorityGroupedTasks';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faToggleOn, faToggleOff } from '@fortawesome/free-solid-svg-icons';
 
 const MainContent = ({
   tasks,
@@ -14,7 +18,10 @@ const MainContent = ({
   currentUserId,
   globalSearchQuery,
   isLoadingTasks,
+  user,
 }) => {
+  const [useEnhancedView, setUseEnhancedView] = useState(false);
+  const [usePriorityGrouping, setUsePriorityGrouping] = useState(false);
   const filteredTasks = tasks.filter(task => {
     // First apply global search filter
     if (globalSearchQuery) {
@@ -30,7 +37,7 @@ const MainContent = ({
     // Then apply sidebar filter
     switch (activeFilter) {
       case 'All':
-        return true;
+        return task.status !== 'Cancelled';
       case 'Completed':
         return task.is_done == 1;
       case 'Cancelled':
@@ -63,24 +70,85 @@ const MainContent = ({
   return (
     <div className="row">
       <div className="col-12">
-        {globalSearchQuery && (
-          <div className="alert alert-info mb-3">
-            <strong>Search Results:</strong> Found {filteredTasks.length} task(s) for "{globalSearchQuery}"
+        {/* View Toggle */}
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            {globalSearchQuery && (
+              <div className="alert alert-info mb-0">
+                <strong>Search Results:</strong> Found {filteredTasks.length} task(s) for "{globalSearchQuery}"
+              </div>
+            )}
           </div>
+          <div className="d-flex align-items-center gap-4">
+            <div className="d-flex align-items-center gap-2">
+              <span className="text-muted small">List View</span>
+              <button
+                className="btn btn-link p-0 border-0"
+                onClick={() => setUsePriorityGrouping(!usePriorityGrouping)}
+                style={{ fontSize: '1.5rem' }}
+              >
+                <FontAwesomeIcon 
+                  icon={usePriorityGrouping ? faToggleOn : faToggleOff} 
+                  style={{ color: usePriorityGrouping ? '#dc3545' : '#6c757d' }}
+                />
+              </button>
+              <span className="text-muted small">Priority Groups</span>
+            </div>
+            <div className="d-flex align-items-center gap-2">
+              <span className="text-muted small">Classic View</span>
+              <button
+                className="btn btn-link p-0 border-0"
+                onClick={() => setUseEnhancedView(!useEnhancedView)}
+                style={{ fontSize: '1.5rem' }}
+              >
+                <FontAwesomeIcon 
+                  icon={useEnhancedView ? faToggleOn : faToggleOff} 
+                  style={{ color: useEnhancedView ? '#28a745' : '#6c757d' }}
+                />
+              </button>
+              <span className="text-muted small">Enhanced View</span>
+            </div>
+          </div>
+        </div>
+
+        {usePriorityGrouping ? (
+          <PriorityGroupedTasks
+            data={filteredTasks}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onDone={onDone}
+            onToggleFavorite={onToggleFavorite}
+            onToggleImportant={onToggleImportant}
+            onChangeStatus={onChangeStatus}
+            isLoadingTasks={isLoadingTasks}
+          />
+        ) : useEnhancedView ? (
+          <EnhancedTodoList
+            data={filteredTasks}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onToggleFavorite={onToggleFavorite}
+            onToggleImportant={onToggleImportant}
+            onChangeStatus={onChangeStatus}
+            isLoadingTasks={isLoadingTasks}
+          />
+        ) : (
+          <>
+            <CategoryControls />
+            <TodoListCard
+              userId={currentUserId}
+              data={filteredTasks}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onDone={onDone}
+              onToggleFavorite={onToggleFavorite}
+              onToggleImportant={onToggleImportant}
+              activeFilter={activeFilter}
+              onChangeStatus={onChangeStatus}
+              isLoadingTasks={isLoadingTasks}
+            />
+          </>
         )}
-        <CategoryControls />
-        <TodoListCard
-          userId={currentUserId}
-          data={filteredTasks}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onDone={onDone}
-          onToggleFavorite={onToggleFavorite}
-          onToggleImportant={onToggleImportant}
-          activeFilter={activeFilter}
-          onChangeStatus={onChangeStatus}
-          isLoadingTasks={isLoadingTasks}
-        />
       </div>
     </div>
   );

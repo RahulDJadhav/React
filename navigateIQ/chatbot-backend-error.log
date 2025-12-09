@@ -1,0 +1,338 @@
+Query execution failed: Error [OperationFailedError]: Date 'Closed Lost' is not recognized
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createOperationFailedError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:342:10)
+    at Object.callback (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:663:28)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/http/base.js:38:24
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  code: '100040',
+  sqlState: '22007',
+  data: { errorCode: '100040', age: 0, sqlState: '22007', queryId: null }
+}
+Cortex Analyst REST API failed...
+Error message: Date 'Closed Lost' is not recognized
+Error processing streaming chat message: Date 'Closed Lost' is not recognized
+OpenAI Streaming API Error: TypeError: terminated
+    at Fetch.onAborted (node:internal/deps/undici/undici:11132:53)
+    at Fetch.emit (node:events:524:28)
+    at Fetch.terminate (node:internal/deps/undici/undici:10290:14)
+    at Object.onError (node:internal/deps/undici/undici:11253:38)
+    at Request.onError (node:internal/deps/undici/undici:2094:31)
+    at Object.errorRequest (node:internal/deps/undici/undici:1591:17)
+    at TLSSocket.<anonymous> (node:internal/deps/undici/undici:6319:16)
+    at TLSSocket.emit (node:events:536:35)
+    at node:net:343:12
+    at TCP.done (node:_tls_wrap:648:7) {
+  [cause]: SocketError: other side closed
+      at TLSSocket.<anonymous> (node:internal/deps/undici/undici:6294:28)
+      at TLSSocket.emit (node:events:536:35)
+      at endReadableNT (node:internal/streams/readable:1698:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+    code: 'UND_ERR_SOCKET',
+    socket: {
+      localAddress: '65.20.80.74',
+      localPort: 50996,
+      remoteAddress: '172.66.0.243',
+      remotePort: 443,
+      remoteFamily: 'IPv4',
+      timeout: undefined,
+      bytesWritten: 5777,
+      bytesRead: 153599
+    }
+  }
+}
+Error enhancing response with OpenAI streaming: Error: Failed to generate streaming markdown response: terminated
+    at OpenAIService.generateMarkdownResponseStream (/var/www/html/public_html/chatbot/backend/src/modules/openai/openai.service.ts:152:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async OpenAIService.enhanceResponseStream (/var/www/html/public_html/chatbot/backend/src/modules/openai/openai.service.ts:169:24)
+    at async ChatService.processMessageStream (/var/www/html/public_html/chatbot/backend/src/modules/chat/chat.service.ts:75:24)
+    at async ChatController.askStream (/var/www/html/public_html/chatbot/backend/src/modules/chat/chat.controller.ts:40:24)
+    at async /var/www/html/public_html/chatbot/backend/node_modules/@nestjs/core/router/router-execution-context.js:46:28
+    at async /var/www/html/public_html/chatbot/backend/node_modules/@nestjs/core/router/router-proxy.js:9:17
+Query execution failed: Error [OperationFailedError]: Date 'Closed Lost' is not recognized
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createOperationFailedError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:342:10)
+    at Object.callback (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:663:28)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/http/base.js:38:24
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  code: '100040',
+  sqlState: '22007',
+  data: { errorCode: '100040', age: 0, sqlState: '22007', queryId: null }
+}
+Cortex Analyst REST API failed...
+Error message: Date 'Closed Lost' is not recognized
+Error processing streaming chat message: Date 'Closed Lost' is not recognized
+Cortex Analyst REST API failed...
+Error status: 500
+Error processing streaming chat message: Request failed with status code 500
+Query execution failed: Error [ClientError]: Unable to perform operation using terminated connection.
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createClientError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:376:10)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:1520:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+  code: 407002,
+  sqlState: '08003',
+  isFatal: true
+}
+Cortex Analyst REST API failed...
+Error message: Unable to perform operation using terminated connection.
+Error processing streaming chat message: Unable to perform operation using terminated connection.
+Query execution failed: Error [ClientError]: Unable to perform operation using terminated connection.
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createClientError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:376:10)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:1520:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+  code: 407002,
+  sqlState: '08003',
+  isFatal: true
+}
+Cortex Analyst REST API failed...
+Error message: Unable to perform operation using terminated connection.
+Error processing streaming chat message: Unable to perform operation using terminated connection.
+Query execution failed: Error [ClientError]: Unable to perform operation using terminated connection.
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createClientError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:376:10)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:1520:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+  code: 407002,
+  sqlState: '08003',
+  isFatal: true
+}
+Cortex Analyst REST API failed...
+Error message: Unable to perform operation using terminated connection.
+Error processing streaming chat message: Unable to perform operation using terminated connection.
+Query execution failed: Error [ClientError]: Unable to perform operation using terminated connection.
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createClientError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:376:10)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:1520:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+  code: 407002,
+  sqlState: '08003',
+  isFatal: true
+}
+Cortex Analyst REST API failed...
+Error message: Unable to perform operation using terminated connection.
+Error processing streaming chat message: Unable to perform operation using terminated connection.
+Query execution failed: Error [ClientError]: Unable to perform operation using terminated connection.
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createClientError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:376:10)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:1520:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+  code: 407002,
+  sqlState: '08003',
+  isFatal: true
+}
+Cortex Analyst REST API failed...
+Error message: Unable to perform operation using terminated connection.
+Error processing streaming chat message: Unable to perform operation using terminated connection.
+Query execution failed: Error [ClientError]: Unable to perform operation using terminated connection.
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createClientError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:376:10)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:1520:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+  code: 407002,
+  sqlState: '08003',
+  isFatal: true
+}
+Cortex Analyst REST API failed...
+Error message: Unable to perform operation using terminated connection.
+Error processing streaming chat message: Unable to perform operation using terminated connection.
+Query execution failed: Error [ClientError]: Unable to perform operation using terminated connection.
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createClientError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:376:10)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:1520:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+  code: 407002,
+  sqlState: '08003',
+  isFatal: true
+}
+Cortex Analyst REST API failed...
+Error message: Unable to perform operation using terminated connection.
+Error processing streaming chat message: Unable to perform operation using terminated connection.
+Query execution failed: Error [ClientError]: Unable to perform operation using terminated connection.
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createClientError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:376:10)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:1520:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+  code: 407002,
+  sqlState: '08003',
+  isFatal: true
+}
+Cortex Analyst REST API failed...
+Error message: Unable to perform operation using terminated connection.
+Error processing streaming chat message: Unable to perform operation using terminated connection.
+Query execution failed: Error [ClientError]: Unable to perform operation using terminated connection.
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createClientError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:376:10)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:1520:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+  code: 407002,
+  sqlState: '08003',
+  isFatal: true
+}
+Cortex Analyst REST API failed...
+Error message: Unable to perform operation using terminated connection.
+Error processing streaming chat message: Unable to perform operation using terminated connection.
+Query execution failed: Error [ClientError]: Unable to perform operation using terminated connection.
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createClientError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:376:10)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:1520:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+  code: 407002,
+  sqlState: '08003',
+  isFatal: true
+}
+Cortex Analyst REST API failed...
+Error message: Unable to perform operation using terminated connection.
+Error processing streaming chat message: Unable to perform operation using terminated connection.
+Query execution failed: Error [ClientError]: Unable to perform operation using terminated connection.
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createClientError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:376:10)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:1520:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+  code: 407002,
+  sqlState: '08003',
+  isFatal: true
+}
+Cortex Analyst REST API failed...
+Error message: Unable to perform operation using terminated connection.
+Error processing streaming chat message: Unable to perform operation using terminated connection.
+Query execution failed: Error [OperationFailedError]: Date '11-25' is not recognized
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createOperationFailedError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:342:10)
+    at Object.callback (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:663:28)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/http/base.js:38:24
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  code: '100040',
+  sqlState: '22007',
+  data: { errorCode: '100040', age: 0, sqlState: '22007', queryId: null }
+}
+Streaming error: InternalServerErrorException: Date '11-25' is not recognized
+    at ChatService.processMessageStream (/var/www/html/public_html/chatbot/backend/src/modules/chat/chat.service.ts:55:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ChatController.askStream (/var/www/html/public_html/chatbot/backend/src/modules/chat/chat.controller.ts:40:24)
+    at async /var/www/html/public_html/chatbot/backend/node_modules/@nestjs/core/router/router-execution-context.js:46:28
+    at async /var/www/html/public_html/chatbot/backend/node_modules/@nestjs/core/router/router-proxy.js:9:17 {
+  response: {
+    message: "Date '11-25' is not recognized",
+    error: 'Internal Server Error',
+    statusCode: 500
+  },
+  status: 500,
+  options: {}
+}
+Query execution failed: Error [OperationFailedError]: Date 'Closed Lost' is not recognized
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createOperationFailedError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:342:10)
+    at Object.callback (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:663:28)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/http/base.js:38:24
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  code: '100040',
+  sqlState: '22007',
+  data: { errorCode: '100040', age: 0, sqlState: '22007', queryId: null }
+}
+Streaming error: InternalServerErrorException: Date 'Closed Lost' is not recognized
+    at ChatService.processMessageStream (/var/www/html/public_html/chatbot/backend/src/modules/chat/chat.service.ts:55:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ChatController.askStream (/var/www/html/public_html/chatbot/backend/src/modules/chat/chat.controller.ts:40:24)
+    at async /var/www/html/public_html/chatbot/backend/node_modules/@nestjs/core/router/router-execution-context.js:46:28
+    at async /var/www/html/public_html/chatbot/backend/node_modules/@nestjs/core/router/router-proxy.js:9:17 {
+  response: {
+    message: "Date 'Closed Lost' is not recognized",
+    error: 'Internal Server Error',
+    statusCode: 500
+  },
+  status: 500,
+  options: {}
+}
+Query execution failed: Error [ClientError]: Unable to perform operation using terminated connection.
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createClientError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:376:10)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:1520:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+  code: 407002,
+  sqlState: '08003',
+  isFatal: true
+}
+Streaming error: InternalServerErrorException: Unable to perform operation using terminated connection.
+    at ChatService.processMessageStream (/var/www/html/public_html/chatbot/backend/src/modules/chat/chat.service.ts:55:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ChatController.askStream (/var/www/html/public_html/chatbot/backend/src/modules/chat/chat.controller.ts:40:24)
+    at async /var/www/html/public_html/chatbot/backend/node_modules/@nestjs/core/router/router-execution-context.js:46:28
+    at async /var/www/html/public_html/chatbot/backend/node_modules/@nestjs/core/router/router-proxy.js:9:17 {
+  response: {
+    message: 'Unable to perform operation using terminated connection.',
+    error: 'Internal Server Error',
+    statusCode: 500
+  },
+  status: 500,
+  options: {}
+}
+Query execution failed: Error [ClientError]: Unable to perform operation using terminated connection.
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createClientError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:376:10)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:1520:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+  code: 407002,
+  sqlState: '08003',
+  isFatal: true
+}
+Streaming error: InternalServerErrorException: Unable to perform operation using terminated connection.
+    at ChatService.processMessageStream (/var/www/html/public_html/chatbot/backend/src/modules/chat/chat.service.ts:55:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ChatController.askStream (/var/www/html/public_html/chatbot/backend/src/modules/chat/chat.controller.ts:40:24)
+    at async /var/www/html/public_html/chatbot/backend/node_modules/@nestjs/core/router/router-execution-context.js:46:28
+    at async /var/www/html/public_html/chatbot/backend/node_modules/@nestjs/core/router/router-proxy.js:9:17 {
+  response: {
+    message: 'Unable to perform operation using terminated connection.',
+    error: 'Internal Server Error',
+    statusCode: 500
+  },
+  status: 500,
+  options: {}
+}
+Query execution failed: Error [ClientError]: Unable to perform operation using terminated connection.
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createClientError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:376:10)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:1520:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+  code: 407002,
+  sqlState: '08003',
+  isFatal: true
+}
+Streaming error: InternalServerErrorException: Unable to perform operation using terminated connection.
+    at ChatService.processMessageStream (/var/www/html/public_html/chatbot/backend/src/modules/chat/chat.service.ts:55:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ChatController.askStream (/var/www/html/public_html/chatbot/backend/src/modules/chat/chat.controller.ts:40:24)
+    at async /var/www/html/public_html/chatbot/backend/node_modules/@nestjs/core/router/router-execution-context.js:46:28
+    at async /var/www/html/public_html/chatbot/backend/node_modules/@nestjs/core/router/router-proxy.js:9:17 {
+  response: {
+    message: 'Unable to perform operation using terminated connection.',
+    error: 'Internal Server Error',
+    statusCode: 500
+  },
+  status: 500,
+  options: {}
+}
+Query execution failed: Error [ClientError]: Unable to perform operation using terminated connection.
+    at createError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:539:17)
+    at exports.createClientError (/var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/errors.js:376:10)
+    at /var/www/html/public_html/chatbot/backend/node_modules/snowflake-sdk/lib/services/sf.js:1520:21
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11) {
+  code: 407002,
+  sqlState: '08003',
+  isFatal: true
+}
+Streaming error: InternalServerErrorException: Unable to perform operation using terminated connection.
+    at ChatService.processMessageStream (/var/www/html/public_html/chatbot/backend/src/modules/chat/chat.service.ts:55:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ChatController.askStream (/var/www/html/public_html/chatbot/backend/src/modules/chat/chat.controller.ts:40:24)
+    at async /var/www/html/public_html/chatbot/backend/node_modules/@nestjs/core/router/router-execution-context.js:46:28
+    at async /var/www/html/public_html/chatbot/backend/node_modules/@nestjs/core/router/router-proxy.js:9:17 {
+  response: {
+    message: 'Unable to perform operation using terminated connection.',
+    error: 'Internal Server Error',
+    statusCode: 500
+  },
+  status: 500,
+  options: {}
+}

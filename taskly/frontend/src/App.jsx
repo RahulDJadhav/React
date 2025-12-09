@@ -9,6 +9,7 @@ import './App.css';
 import Login from './components/Login';
 import AdminPanel from './components/AdminPanel';
 import DueSoonModal from './components/DueSoonModal';
+import ResetPassword from './components/ResetPassword';
 
 
 
@@ -45,6 +46,16 @@ const App = () => {
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [lastNotificationId, setLastNotificationId] = useState(null);
+  const [resetToken, setResetToken] = useState(null);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  
+  // Admin panel state
+  const [adminActiveTab, setAdminActiveTab] = useState('tasks');
+  const [adminTasks, setAdminTasks] = useState([]);
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [adminAllTasks, setAdminAllTasks] = useState([]);
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [adminAppliedFilters, setAdminAppliedFilters] = useState(null);
 
   // Add currentUserId state
   const currentUserId = user?.id || '';
@@ -57,6 +68,16 @@ const App = () => {
   useEffect(() => {
     const savedUser = localStorage.getItem('taskly_user');
     const savedActivity = localStorage.getItem('taskly_last_activity');
+    
+    // Check for reset token in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    if (token) {
+      setResetToken(token);
+      setShowResetPassword(true);
+      setIsCheckingSession(false);
+      return;
+    }
     
     if (savedUser && savedActivity) {
       const timeDiff = Date.now() - parseInt(savedActivity);
@@ -143,8 +164,8 @@ const App = () => {
     }
   }, [user]);
 
-  // Fetch tasks for the logged-in user
-  useEffect(() => {
+  // Centralized task fetching function
+  const fetchUserTasks = () => {
     if (user?.id) {
       setIsLoadingTasks(true);
       fetch(`${API_BASE}getTasks.php?user_id=${user.id}`)
@@ -165,10 +186,14 @@ const App = () => {
           setIsLoadingTasks(false);
         });
     } else {
-      // If no user is logged in, clear tasks
       setTasks([]);
       setIsLoadingTasks(false);
     }
+  };
+
+  // Fetch tasks for the logged-in user
+  useEffect(() => {
+    fetchUserTasks();
   }, [user]); // Re-fetch when user changes
 
   // Compute and show due-soon modal (today or tomorrow, not done). Only once per login.
@@ -226,13 +251,9 @@ const App = () => {
       .then(data => {
         if (data.message && data.message.includes("successfully")) {
           // Re-fetch tasks only on success
-          fetch(`${API_BASE}getTasks.php?user_id=${user.id}`)
-            .then(res => res.json())
-            .then(data => {
-              setTasks(data);
-              setSuccessMessage("Task Created Successfully!");
-              setTimeout(() => setSuccessMessage(""), 1000);
-            });
+          fetchUserTasks();
+          setSuccessMessage("Task Created Successfully!");
+          setTimeout(() => setSuccessMessage(""), 1000);
         } else if (data.error) {
           console.error("Server Error:", data.error);
           alert(`Error: ${data.error}`);
@@ -269,9 +290,7 @@ const App = () => {
 
       if (result.message && result.message.toLowerCase().includes("success")) {
         // Refresh the task list
-        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${user.id}`);
-        const data = await taskRes.json();
-        setTasks(Array.isArray(data) ? data : []);
+        fetchUserTasks();
         setSuccessMessage("Task updated successfully!");
         setTimeout(() => setSuccessMessage(""), 1000);
       } else {
@@ -303,9 +322,7 @@ const App = () => {
 
       if (result.message && result.message.toLowerCase().includes("success")) {
         // Refresh the task list
-        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${user.id}`);
-        const data = await taskRes.json();
-        setTasks(data);
+        fetchUserTasks();
         setSuccessMessage("Task deleted successfully!");
         setTimeout(() => setSuccessMessage(""), 1000);
       } else {
@@ -358,9 +375,7 @@ const App = () => {
       const result = await res.json();
 
       if (result.message && result.message.toLowerCase().includes("updated")) {
-        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${user.id}`);
-        const data = await taskRes.json();
-        setTasks(data);
+        fetchUserTasks();
         setSuccessMessage("Task status updated successfully!");
         setTimeout(() => setSuccessMessage(""), 1000);
       } else {
@@ -388,9 +403,7 @@ const App = () => {
       const result = await res.json();
 
       if (result.message && result.message.toLowerCase().includes("updated")) {
-        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${user.id}`);
-        const data = await taskRes.json();
-        setTasks(data);
+        fetchUserTasks();
       }
     } catch (e) {
       console.error(e);
@@ -413,9 +426,7 @@ const App = () => {
       const result = await res.json();
 
       if (result.message && result.message.toLowerCase().includes("updated")) {
-        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${user.id}`);
-        const data = await taskRes.json();
-        setTasks(data);
+        fetchUserTasks();
       }
     } catch (e) {
       console.error(e);
@@ -445,9 +456,7 @@ const App = () => {
       });
       const result = await res.json();
       if (result.message && result.message.toLowerCase().includes("updated")) {
-        const taskRes = await fetch(`${API_BASE}getTasks.php?user_id=${user.id}`);
-        const data = await taskRes.json();
-        setTasks(data);
+        fetchUserTasks();
       } else {
         alert("Something went wrong: " + result.message);
       }
@@ -512,6 +521,72 @@ const App = () => {
     localStorage.removeItem('taskly_last_activity');
   };
 
+  const handleResetSuccess = (message) => {
+    alert(message);
+    setShowResetPassword(false);
+    setResetToken(null);
+    // Clear URL parameters
+    window.history.replaceState({}, document.title, window.location.pathname);
+  };
+
+  const handleResetCancel = () => {
+    setShowResetPassword(false);
+    setResetToken(null);
+    // Clear URL parameters
+    window.history.replaceState({}, document.title, window.location.pathname);
+  };
+
+  // Admin functions
+  const fetchAdminUsers = () => {
+    fetch(`${API_BASE}getUsers.php`)
+      .then(r => r.json())
+      .then(data => {
+        Array.isArray(data) ? setAdminUsers(data) : setAdminUsers([]);
+      })
+      .catch(() => setAdminUsers([]));
+  };
+
+  const fetchAdminTasks = (filters = {}) => {
+    setAdminLoading(true);
+    const qs = new URLSearchParams();
+    if (filters.status) qs.append('status', filters.status);
+    if (filters.userId) qs.append('user_id', filters.userId);
+    if (filters.q) qs.append('q', filters.q);
+    if (filters.priorityFilter && filters.priorityFilter !== 'All') {
+      qs.append('priority', filters.priorityFilter);
+    }
+    fetch(`${API_BASE}getTasksAdmin.php?` + qs.toString())
+      .then(r => r.json())
+      .then(data => {
+        const tasksData = Array.isArray(data) ? data : [];
+        setAdminTasks(tasksData);
+        if (!filters.status && !filters.userId && !filters.q && (!filters.priorityFilter || filters.priorityFilter === 'All')) {
+          setAdminAllTasks(tasksData);
+        }
+      })
+      .catch(() => setAdminTasks([]))
+      .finally(() => setAdminLoading(false));
+  };
+
+  const handleAdminApplyFilters = (filters) => {
+    setAdminAppliedFilters(filters);
+  };
+
+  // Fetch admin data when admin panel is opened
+  React.useEffect(() => {
+    if (showAdmin && isAdmin) {
+      fetchAdminUsers();
+      fetchAdminTasks({});
+    }
+  }, [showAdmin, isAdmin]);
+
+  // Handle admin filter changes
+  React.useEffect(() => {
+    if (adminAppliedFilters && showAdmin) {
+      fetchAdminTasks(adminAppliedFilters);
+    }
+  }, [adminAppliedFilters, showAdmin]);
+
   if (isCheckingSession) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
@@ -522,6 +597,16 @@ const App = () => {
           <p className="mt-3 text-muted">Loading...</p>
         </div>
       </div>
+    );
+  }
+  
+  if (showResetPassword && resetToken) {
+    return (
+      <ResetPassword 
+        token={resetToken} 
+        onSuccess={handleResetSuccess}
+        onCancel={handleResetCancel}
+      />
     );
   }
   
@@ -540,10 +625,10 @@ const App = () => {
         user={user}
       />
 
-      {/* Body: Sidebar + Content */}
+      {/* Body: Sidebar + Content - 80/20 Layout */}
       <div className="d-flex flex-grow-1">
-        {/* Sidebar */}
-        <div className="col-md-2 p-3">
+        {/* Sidebar - 20% Width */}
+        <div style={{ width: '20%', minWidth: '250px' }} className="p-3">
           <Sidebar
             activeFilter={activeFilter}
             onFilterChange={handleFilterChange}
@@ -551,11 +636,18 @@ const App = () => {
             showAdminPanel={showAdmin}
             user={user}
             onUserUpdate={handleUserUpdate}
+            // Admin panel props
+            activeTab={adminActiveTab}
+            setActiveTab={setAdminActiveTab}
+            tasks={adminTasks}
+            users={adminUsers}
+            allTasks={adminAllTasks}
+            handleApplyFilters={handleAdminApplyFilters}
           />
         </div>
 
-        {/* Main Content */}
-        <div className="col-md-10 p-4">
+        {/* Main Content - 80% Width */}
+        <div style={{ width: '80%' }} className="p-4">
           <div className="row mb-3">
             <div className="col">
               {successMessage && (
@@ -605,7 +697,16 @@ const App = () => {
                 <DueSoonModal tasks={dueSoonTasks} onClose={handleDismissDueModal} />
               )}
               {isAdmin && showAdmin ? (
-                <AdminPanel onClose={() => setShowAdmin(false)} />
+                <AdminPanel 
+                  onClose={() => setShowAdmin(false)}
+                  activeTab={adminActiveTab}
+                  setActiveTab={setAdminActiveTab}
+                  tasks={adminTasks}
+                  users={adminUsers}
+                  allTasks={adminAllTasks}
+                  loading={adminLoading}
+                  handleApplyFilters={handleAdminApplyFilters}
+                />
               ) : (
                 <MainContent
                   tasks={tasks}
@@ -619,6 +720,7 @@ const App = () => {
                   currentUserId={currentUserId}
                   globalSearchQuery={globalSearchQuery}
                   isLoadingTasks={isLoadingTasks}
+                  user={user}
                 />
               )}
             </div>

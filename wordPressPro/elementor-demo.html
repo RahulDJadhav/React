@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elementor-like Editor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        
+        .elementor-editor { display: flex; height: 100vh; }
+        
+        /* Left Panel - Widgets */
+        .elementor-panel { width: 300px; background: #495157; color: white; overflow-y: auto; }
+        .panel-header { padding: 20px; background: #3a3f44; border-bottom: 1px solid #5a6169; }
+        .panel-title { font-size: 18px; font-weight: 600; }
+        
+        .widgets-list { padding: 20px; }
+        .widget-category { margin-bottom: 20px; }
+        .category-title { font-size: 14px; color: #a4afb7; margin-bottom: 10px; text-transform: uppercase; }
+        
+        .widget-item { 
+            display: flex; align-items: center; padding: 12px; margin-bottom: 8px; 
+            background: #5a6169; border-radius: 4px; cursor: pointer; transition: all 0.2s;
+        }
+        .widget-item:hover { background: #6c757d; }
+        .widget-icon { width: 20px; height: 20px; margin-right: 12px; background: #007cba; border-radius: 3px; }
+        
+        /* Center - Canvas */
+        .elementor-canvas { flex: 1; background: #f1f3f4; position: relative; overflow: auto; }
+        .canvas-header { background: white; padding: 15px 20px; border-bottom: 1px solid #e1e5e9; }
+        .canvas-title { font-size: 16px; color: #495157; }
+        
+        .canvas-content { padding: 40px; }
+        .elementor-section { 
+            background: white; margin-bottom: 20px; border-radius: 4px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative; min-height: 100px;
+        }
+        
+        .elementor-element { 
+            padding: 20px; border: 2px dashed transparent; position: relative; 
+            transition: all 0.2s; cursor: pointer;
+        }
+        .elementor-element:hover { border-color: #007cba; }
+        .elementor-element.selected { border-color: #007cba; background: rgba(0,124,186,0.05); }
+        
+        .element-controls { 
+            position: absolute; top: -30px; right: 0; background: #007cba; 
+            border-radius: 3px; padding: 5px; display: none;
+        }
+        .elementor-element:hover .element-controls { display: block; }
+        .control-btn { background: none; border: none; color: white; padding: 3px 6px; cursor: pointer; }
+        
+        .drop-zone { 
+            min-height: 60px; border: 2px dashed #ccc; margin: 10px 0; 
+            display: flex; align-items: center; justify-content: center; 
+            color: #999; border-radius: 4px;
+        }
+        .drop-zone.drag-over { border-color: #007cba; background: rgba(0,124,186,0.1); }
+        
+        /* Right Panel - Properties */
+        .elementor-properties { width: 300px; background: white; border-left: 1px solid #e1e5e9; }
+        .properties-header { padding: 20px; background: #f8f9fa; border-bottom: 1px solid #e1e5e9; }
+        .properties-content { padding: 20px; }
+        
+        .control-group { margin-bottom: 20px; }
+        .control-label { font-size: 12px; color: #495157; margin-bottom: 8px; text-transform: uppercase; font-weight: 600; }
+        .control-input { width: 100%; padding: 8px 12px; border: 1px solid #e1e5e9; border-radius: 3px; }
+        .control-input:focus { outline: none; border-color: #007cba; }
+        
+        .color-control { display: flex; align-items: center; }
+        .color-input { width: 40px; height: 32px; border: none; border-radius: 3px; margin-right: 10px; }
+        
+        .range-control { display: flex; align-items: center; }
+        .range-input { flex: 1; margin-right: 10px; }
+        .range-value { font-size: 12px; color: #666; min-width: 40px; }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .elementor-panel, .elementor-properties { width: 250px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="elementor-editor">
+        <!-- Left Panel - Widgets -->
+        <div class="elementor-panel">
+            <div class="panel-header">
+                <div class="panel-title">Elements</div>
+            </div>
+            <div class="widgets-list">
+                <div class="widget-category">
+                    <div class="category-title">Basic</div>
+                    <div class="widget-item" draggable="true" data-widget="text">
+                        <div class="widget-icon"></div>
+                        <span>Text Editor</span>
+                    </div>
+                    <div class="widget-item" draggable="true" data-widget="button">
+                        <div class="widget-icon"></div>
+                        <span>Button</span>
+                    </div>
+                    <div class="widget-item" draggable="true" data-widget="image">
+                        <div class="widget-icon"></div>
+                        <span>Image</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center - Canvas -->
+        <div class="elementor-canvas">
+            <div class="canvas-header">
+                <div class="canvas-title">Edit Page</div>
+            </div>
+            <div class="canvas-content">
+                <div class="elementor-section">
+                    <div class="drop-zone" id="main-drop-zone">
+                        Drag widgets here to start building
+                    </div>
+                    <div id="elements-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Properties -->
+        <div class="elementor-properties">
+            <div class="properties-header">
+                <div class="panel-title">Edit Element</div>
+            </div>
+            <div class="properties-content" id="properties-content">
+                <p style="color: #999; text-align: center;">Select an element to edit its properties</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import ElementorSystem from './src/core/ElementorSystem.js';
+        import TextWidgetPlugin from './src/examples/TextWidgetPlugin.js';
+        import ButtonWidgetPlugin from './src/examples/ButtonWidgetPlugin.js';
+
+        // Initialize Elementor System
+        const elementor = new ElementorSystem();
+        elementor.registerPlugin('TextWidget', TextWidgetPlugin);
+        elementor.registerPlugin('ButtonWidget', ButtonWidgetPlugin);
+        elementor.init();
+
+        // Register Image Widget
+        class ImageWidget {
+            constructor(props = {}) {
+                this.props = { src: 'https://via.placeholder.com/400x200/007cba/ffffff?text=Image', alt: 'Image', ...props };
+            }
+            render() {
+                return `<img src="${this.props.src}" alt="${this.props.alt}" style="max-width: 100%; height: auto;">`;
+            }
+        }
+        elementor.registerWidget('image', { title: 'Image', category: 'basic', component: ImageWidget, controls: { src: { type: 'text', label: 'Image URL' }, alt: { type: 'text', label: 'Alt Text' } } });
+
+        let selectedElement = null;
+        let elementCounter = 0;
+
+        // Drag and Drop
+        document.querySelectorAll('.widget-item').forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', item.dataset.widget);
+            });
+        });
+
+        const dropZone = document.getElementById('main-drop-zone');
+        const container = document.getElementById('elements-container');
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const widgetType = e.dataTransfer.getData('text/plain');
+            addElement(widgetType);
+        });
+
+        function addElement(widgetType) {
+            elementCounter++;
+            const elementId = `element_${elementCounter}`;
+            
+            // Create element with Elementor system
+            elementor.createElement(widgetType, getDefaultSettings(widgetType));
+            const rendered = elementor.renderElements();
+            const lastElement = rendered[rendered.length - 1];
+
+            // Create DOM element
+            const elementDiv = document.createElement('div');
+            elementDiv.className = 'elementor-element';
+            elementDiv.dataset.elementId = elementId;
+            elementDiv.dataset.widgetType = widgetType;
+            elementDiv.innerHTML = `
+                <div class="element-controls">
+                    <button class="control-btn" onclick="editElement('${elementId}')">✏️</button>
+                    <button class="control-btn" onclick="deleteElement('${elementId}')">🗑️</button>
+                </div>
+                ${lastElement.html}
+            `;
+
+            elementDiv.addEventListener('click', () => selectElement(elementDiv));
+            container.appendChild(elementDiv);
+            
+            // Hide drop zone if elements exist
+            if (container.children.length > 0) {
+                dropZone.style.display = 'none';
+            }
+        }
+
+        function getDefaultSettings(widgetType) {
+            const defaults = {
+                text: { text: 'Your text here...', color: '#333333', fontSize: '16px' },
+                button: { text: 'Click Here', backgroundColor: '#007cba', textColor: '#ffffff' },
+                image: { src: 'https://via.placeholder.com/400x200/007cba/ffffff?text=Image', alt: 'Image' }
+            };
+            return defaults[widgetType] || {};
+        }
+
+        function selectElement(elementDiv) {
+            // Remove previous selection
+            document.querySelectorAll('.elementor-element').forEach(el => el.classList.remove('selected'));
+            
+            // Select current element
+            elementDiv.classList.add('selected');
+            selectedElement = elementDiv;
+            
+            // Show properties panel
+            showProperties(elementDiv.dataset.widgetType, elementDiv.dataset.elementId);
+        }
+
+        function showProperties(widgetType, elementId) {
+            const widget = elementor.getWidget(widgetType);
+            const controls = widget.controls || {};
+            
+            let html = `<div class="control-group"><div class="control-label">Element: ${widget.title}</div></div>`;
+            
+            Object.entries(controls).forEach(([key, control]) => {
+                html += `<div class="control-group">`;
+                html += `<div class="control-label">${control.label}</div>`;
+                
+                if (control.type === 'color') {
+                    html += `<div class="color-control">
+                        <input type="color" class="color-input" data-property="${key}" value="${control.default || '#000000'}">
+                        <input type="text" class="control-input" data-property="${key}" value="${control.default || '#000000'}">
+                    </div>`;
+                } else if (control.type === 'slider') {
+                    const value = parseInt(control.default) || 16;
+                    html += `<div class="range-control">
+                        <input type="range" class="range-input" data-property="${key}" min="${control.min || 10}" max="${control.max || 72}" value="${value}">
+                        <span class="range-value">${value}px</span>
+                    </div>`;
+                } else {
+                    html += `<input type="text" class="control-input" data-property="${key}" value="${control.default || ''}" placeholder="${control.label}">`;
+                }
+                html += `</div>`;
+            });
+            
+            document.getElementById('properties-content').innerHTML = html;
+            
+            // Add event listeners
+            document.querySelectorAll('#properties-content input').forEach(input => {
+                input.addEventListener('input', updateElement);
+            });
+        }
+
+        function updateElement(e) {
+            if (!selectedElement) return;
+            
+            const property = e.target.dataset.property;
+            const value = e.target.value;
+            const widgetType = selectedElement.dataset.widgetType;
+            
+            // Update range display
+            if (e.target.type === 'range') {
+                const rangeValue = e.target.parentNode.querySelector('.range-value');
+                rangeValue.textContent = value + 'px';
+            }
+            
+            // Get current settings
+            const settings = getCurrentSettings(selectedElement);
+            settings[property] = e.target.type === 'range' ? value + 'px' : value;
+            
+            // Re-render element
+            const widget = elementor.getWidget(widgetType);
+            const instance = new widget.component(settings);
+            const controls = selectedElement.querySelector('.element-controls');
+            selectedElement.innerHTML = controls.outerHTML + instance.render();
+        }
+
+        function getCurrentSettings(elementDiv) {
+            const widgetType = elementDiv.dataset.widgetType;
+            const settings = {};
+            
+            document.querySelectorAll('#properties-content input').forEach(input => {
+                const property = input.dataset.property;
+                if (property) {
+                    settings[property] = input.type === 'range' ? input.value + 'px' : input.value;
+                }
+            });
+            
+            return settings;
+        }
+
+        // Global functions
+        window.editElement = (elementId) => {
+            const element = document.querySelector(`[data-element-id="${elementId}"]`);
+            if (element) selectElement(element);
+        };
+
+        window.deleteElement = (elementId) => {
+            const element = document.querySelector(`[data-element-id="${elementId}"]`);
+            if (element) {
+                element.remove();
+                if (container.children.length === 0) {
+                    dropZone.style.display = 'flex';
+                }
+                document.getElementById('properties-content').innerHTML = '<p style="color: #999; text-align: center;">Select an element to edit its properties</p>';
+            }
+        };
+    </script>
+</body>
+</html>

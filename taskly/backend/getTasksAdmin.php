@@ -11,10 +11,11 @@ header("Content-Type: application/json");
 
 require 'db.php';
 
-// Optional filters: ?status=Open|In%20Progress|On%20Hold|Cancelled|Completed&user_id=123&q=search
-$status  = isset($_GET['status'])  ? trim($_GET['status']) : '';
-$user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
-$q       = isset($_GET['q'])       ? trim($_GET['q']) : '';
+// Optional filters: ?status=Open|In%20Progress|On%20Hold|Cancelled|Completed&user_id=123&q=search&priority=High
+$status   = isset($_GET['status'])   ? trim($_GET['status']) : '';
+$user_id  = isset($_GET['user_id'])  ? intval($_GET['user_id']) : 0;
+$q        = isset($_GET['q'])        ? trim($_GET['q']) : '';
+$priority = isset($_GET['priority']) ? trim($_GET['priority']) : '';
 
 $clauses = [];
 $params  = [];
@@ -31,10 +32,43 @@ if ($user_id > 0) {
   $types    .= 'i';
 }
 if ($q !== '') {
-  $clauses[] = "(t.title LIKE ? OR t.description LIKE ?)";
-  $like = "%{$q}%";
-  $params[] = $like; $params[] = $like;
-  $types .= 'ss';
+  // Handle special search queries
+  if (strpos($q, 'due_date:') === 0) {
+    // Today filter: due_date:2024-01-15
+    $date = substr($q, 9);
+    $clauses[] = "t.due_date = ?";
+    $params[] = $date;
+    $types .= 's';
+  } elseif (strpos($q, 'week:') === 0) {
+    // Week filter: week:2024-01-14-2024-01-20
+    $dateRange = substr($q, 5);
+    $dates = explode('-', $dateRange);
+    if (count($dates) >= 6) { // YYYY-MM-DD-YYYY-MM-DD format
+      $startDate = $dates[0] . '-' . $dates[1] . '-' . $dates[2];
+      $endDate = $dates[3] . '-' . $dates[4] . '-' . $dates[5];
+      $clauses[] = "t.due_date BETWEEN ? AND ?";
+      $params[] = $startDate;
+      $params[] = $endDate;
+      $types .= 'ss';
+    }
+  } elseif (strpos($q, 'overdue:') === 0) {
+    // Overdue filter: overdue:2024-01-15
+    $today = substr($q, 8);
+    $clauses[] = "t.due_date < ? AND t.status != 'Completed'";
+    $params[] = $today;
+    $types .= 's';
+  } else {
+    // Regular text search
+    $clauses[] = "(t.title LIKE ? OR t.description LIKE ?)";
+    $like = "%{$q}%";
+    $params[] = $like; $params[] = $like;
+    $types .= 'ss';
+  }
+}
+if ($priority !== '' && $priority !== 'All') {
+  $clauses[] = "t.priority = ?";
+  $params[]  = $priority;
+  $types    .= 's';
 }
 
 $where = $clauses ? implode(' AND ', $clauses) : '';

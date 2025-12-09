@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elementor System Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .widget { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
+        .controls { background: #f5f5f5; padding: 15px; margin: 10px 0; }
+        .control { margin: 10px 0; }
+        .control label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .control input, .control select, .control textarea { width: 100%; padding: 5px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .output { background: #fff; border: 2px solid #007cba; padding: 20px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Elementor-like Plugin System Demo</h1>
+        
+        <div class="controls">
+            <h3>Create Widgets</h3>
+            <button onclick="addTextWidget()">Add Text Widget</button>
+            <button onclick="addButtonWidget()">Add Button Widget</button>
+            <button onclick="addImageWidget()">Add Image Widget</button>
+            <button onclick="clearAll()">Clear All</button>
+        </div>
+
+        <div class="controls">
+            <h3>Text Widget Controls</h3>
+            <div class="control">
+                <label>Text Content:</label>
+                <input type="text" id="textContent" value="Hello World!" onchange="updateTextWidget()">
+            </div>
+            <div class="control">
+                <label>Text Color:</label>
+                <input type="color" id="textColor" value="#000000" onchange="updateTextWidget()">
+            </div>
+            <div class="control">
+                <label>Font Size:</label>
+                <input type="range" id="fontSize" min="10" max="72" value="16" onchange="updateTextWidget()">
+                <span id="fontSizeValue">16px</span>
+            </div>
+        </div>
+
+        <div class="output" id="output">
+            <h3>Rendered Output:</h3>
+            <div id="rendered-content"></div>
+        </div>
+
+        <div id="console-output">
+            <h3>Console Output:</h3>
+            <pre id="console"></pre>
+        </div>
+    </div>
+
+    <script type="module">
+        import ElementorSystem from './src/core/ElementorSystem.js';
+        import TextWidgetPlugin from './src/examples/TextWidgetPlugin.js';
+        import ButtonWidgetPlugin from './src/examples/ButtonWidgetPlugin.js';
+
+        // Initialize system
+        const elementor = new ElementorSystem();
+        elementor.registerPlugin('TextWidget', TextWidgetPlugin);
+        elementor.registerPlugin('ButtonWidget', ButtonWidgetPlugin);
+        elementor.init();
+
+        // Register Image Widget
+        class ImageWidget {
+            constructor(props = {}) {
+                this.props = {
+                    src: 'https://via.placeholder.com/300x200',
+                    alt: 'Demo Image',
+                    width: '300px',
+                    height: '200px',
+                    ...props
+                };
+            }
+            render() {
+                return `<img src="${this.props.src}" alt="${this.props.alt}" style="width: ${this.props.width}; height: ${this.props.height}; border: 1px solid #ddd;">`;
+            }
+        }
+
+        elementor.registerWidget('image', {
+            title: 'Image',
+            category: 'media',
+            component: ImageWidget,
+            controls: {
+                src: { type: 'text', label: 'Image URL' },
+                alt: { type: 'text', label: 'Alt Text' }
+            }
+        });
+
+        // Global functions for buttons
+        window.addTextWidget = () => {
+            elementor.createElement('text', {
+                text: document.getElementById('textContent').value,
+                color: document.getElementById('textColor').value,
+                fontSize: document.getElementById('fontSize').value + 'px'
+            });
+            renderOutput();
+            logToConsole('Text widget added');
+        };
+
+        window.addButtonWidget = () => {
+            elementor.createElement('button', {
+                text: 'Click Me!',
+                backgroundColor: '#007cba',
+                textColor: '#ffffff'
+            });
+            renderOutput();
+            logToConsole('Button widget added');
+        };
+
+        window.addImageWidget = () => {
+            elementor.createElement('image', {
+                src: 'https://via.placeholder.com/300x200/007cba/ffffff?text=Demo+Image',
+                alt: 'Demo Image'
+            });
+            renderOutput();
+            logToConsole('Image widget added');
+        };
+
+        window.updateTextWidget = () => {
+            const fontSize = document.getElementById('fontSize').value;
+            document.getElementById('fontSizeValue').textContent = fontSize + 'px';
+            
+            // Update last text widget if exists
+            const elements = elementor.elementBuilder.elements;
+            const lastTextElement = elements.filter(el => el.type === 'text').pop();
+            if (lastTextElement) {
+                lastTextElement.settings = {
+                    text: document.getElementById('textContent').value,
+                    color: document.getElementById('textColor').value,
+                    fontSize: fontSize + 'px'
+                };
+                renderOutput();
+                logToConsole('Text widget updated');
+            }
+        };
+
+        window.clearAll = () => {
+            elementor.elementBuilder.elements = [];
+            renderOutput();
+            logToConsole('All widgets cleared');
+        };
+
+        function renderOutput() {
+            const rendered = elementor.renderElements();
+            const content = rendered.map(el => `
+                <div class="widget">
+                    <small>Widget: ${el.element.type} (ID: ${el.id})</small>
+                    ${el.html}
+                </div>
+            `).join('');
+            
+            document.getElementById('rendered-content').innerHTML = content || '<p>No widgets created yet.</p>';
+        }
+
+        function logToConsole(message) {
+            const console = document.getElementById('console');
+            const timestamp = new Date().toLocaleTimeString();
+            console.textContent += `[${timestamp}] ${message}\n`;
+            console.scrollTop = console.scrollHeight;
+        }
+
+        // Setup plugin communication logging
+        const textPlugin = elementor.getPlugin('TextWidget');
+        const buttonPlugin = elementor.getPlugin('ButtonWidget');
+
+        textPlugin.on('widget:changed', (data) => {
+            logToConsole(`Text plugin event: ${JSON.stringify(data)}`);
+        });
+
+        buttonPlugin.on('widget:interaction', (data) => {
+            logToConsole(`Button plugin event: ${JSON.stringify(data)}`);
+        });
+
+        // Initial render
+        renderOutput();
+        logToConsole('Elementor system initialized');
+        logToConsole(`Registered widgets: ${elementor.getAllWidgets().map(w => w.name).join(', ')}`);
+    </script>
+</body>
+</html>

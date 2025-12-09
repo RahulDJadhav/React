@@ -1,0 +1,371 @@
+name: meridian_attribution_enhanced
+description: Enhanced semantic model for MERIDIAN marketing attribution with added segmentation, temporal comparisons, and auditability
+tables:
+  - name: attribution
+    description: Marketing attribution data for accounts, engagements, and opportunities, with additional segmentation
+    base_table:
+      database: NAVIGATE_DB
+      schema: PUBLIC
+      table: DEMO_ATTRIBUTION
+    dimensions:
+      - name: account_id
+        description: Account identifier
+        expr: ACCOUNT_ID
+        data_type: varchar
+      - name: account_name
+        synonyms:
+          - company
+          - organization
+        description: Account name
+        expr: ACCOUNT_NAME
+        data_type: varchar
+      - name: account_owner
+        description: Account owner name
+        expr: ACCOUNT_OWNER
+        data_type: varchar
+      - name: account_type
+        description: Account type (Prospect, Customer, Partner)
+        expr: ACCOUNT_TYPE
+        data_type: varchar
+      - name: accounts_with_opps
+        description: Flag indicating if account has any opportunities
+        expr: ACCOUNTS_WITH_OPPS
+        data_type: boolean
+      - name: attribution_type
+        description: Attribution model type
+        expr: ATTRIBUTION_TYPE
+        data_type: varchar
+      - name: department
+        description: Department of contact
+        expr: DEPARTMENT
+        data_type: varchar
+      - name: engagement_id
+        description: Engagement (touchpoint) identifier
+        expr: ENGAGEMENT_ID
+        data_type: varchar
+      - name: engagement_name
+        description: Engagement name or title
+        expr: ENGAGEMENT_NAME
+        data_type: varchar
+      - name: engagement_type
+        synonyms:
+          - channel
+          - marketing channel
+          - touchpoint type
+        description: Type of engagement (e.g. Email, Web Visit, Webinar)
+        expr: ENGAGEMENT_TYPE
+        data_type: varchar
+      - name: total_engagements
+        synonyms:
+          - engagements
+          - interactions
+          - touches
+        description: Total number of engagements (touchpoints) for the account/opportunity
+        expr: TOTAL_ENGAGEMENTS
+        data_type: number
+      - name: engagement_band
+        synonyms:
+          - engagement level
+          - engagement band
+          - touches category
+        description: Categorized engagement band (e.g. 0-10, 11-25, 26-50,51-100, >100 touches)
+        expr: >
+          CASE 
+            WHEN TOTAL_ENGAGEMENTS <= 10 THEN '0-10' 
+            WHEN TOTAL_ENGAGEMENTS <= 25 THEN '11-25'
+            WHEN TOTAL_ENGAGEMENTS <= 50 THEN '26-50'
+            WHEN TOTAL_ENGAGEMENTS <= 100 THEN '51-100'
+            ELSE '>100'
+          END
+        data_type: varchar
+      - name: individual_id
+        description: Contact (individual) identifier
+        expr: INDIVIDUAL_ID
+        data_type: varchar
+      - name: industry
+        description: Industry of account
+        expr: INDUSTRY
+        data_type: varchar
+      - name: is_first_engagement
+        description: Flag if this is the first engagement for the account/contact
+        expr: IS_FIRST_ENGAGEMENT
+        data_type: boolean
+      - name: is_won
+        description: True if the opportunity was won
+        expr: IS_WON
+        data_type: boolean
+      - name: job_function
+        description: Job function of contact (e.g. Marketing, Sales)
+        expr: JOB_FUNCTION
+        data_type: varchar
+      - name: job_level
+        description: Job seniority level of contact
+        expr: JOB_LEVEL
+        data_type: varchar
+      - name: opp_type
+        description: Opportunity type/category
+        expr: OPP_TYPE
+        data_type: varchar
+      - name: opportunity_id
+        description: Opportunity identifier
+        expr: OPPORTUNITY_ID
+        data_type: varchar
+      - name: opportunity_name
+        description: Opportunity name
+        expr: OPPORTUNITY_NAME
+        data_type: varchar
+      - name: partner_involved
+        description: Flag if a partner is involved in the deal
+        expr: PARTNER_INVOLVED
+        data_type: boolean
+      - name: region
+        description: Geographic region or territory
+        expr: REGION
+        data_type: varchar
+      - name: revenue_tier
+        description: Revenue tier of account
+        expr: REVENUE_TIER
+        data_type: varchar
+      - name: stage_name
+        description: Normalized opportunity stage (Open, Closed Won, Closed Lost)
+        expr: STAGE_NAME_NORMALZIED
+        data_type: varchar
+        sample_values:
+          - Open
+          - Closed Won
+          - Closed Lost
+      - name: deal_size_band
+        synonyms:
+          - deal value category
+          - revenue bracket
+        description: Categorized deal size (based on AMOUNT)
+        expr: >
+          CASE 
+            WHEN AMOUNT < 50000 THEN '<50K'
+            WHEN AMOUNT < 100000 THEN '50K-100K'
+            ELSE '>100K'
+          END
+        data_type: varchar
+      - name: unique_id
+        description: Unique row identifier
+        expr: UNIQUE_ID
+        data_type: varchar
+    time_dimensions:
+      - name: data_load_date
+        description: Date when attribution data was loaded
+        expr: DATA_LOAD_DATE
+        data_type: date
+      - name: engagement_date
+        description: Date of engagement/touch
+        expr: ENGAGEMENT_DATE
+        data_type: date
+      - name: engagement_month
+        description: Month of engagement
+        expr: DATE_TRUNC('month', ENGAGEMENT_DATE)
+        data_type: date
+      - name: engagement_quarter
+        description: Quarter of engagement
+        expr: DATE_TRUNC('quarter', ENGAGEMENT_DATE)
+        data_type: date
+      - name: opp_created_date
+        description: Date when opportunity was created
+        expr: OPP_CREATED_DATE
+        data_type: date
+      - name: opp_close_date
+        description: Date when opportunity was closed (won or lost)
+        expr: OPP_CLOSE_DATE
+        data_type: date
+      - name: opp_close_month
+        description: Month when opportunity closed
+        expr: DATE_TRUNC('month', OPP_CLOSE_DATE)
+        data_type: date
+      - name: opp_close_quarter
+        description: Quarter when opportunity closed
+        expr: DATE_TRUNC('quarter', OPP_CLOSE_DATE)
+        data_type: date
+    facts:
+      - name: amount
+        synonyms:
+          - deal value
+          - revenue
+        description: Opportunity amount (dollars)
+        expr: AMOUNT
+        data_type: number
+        default_aggregation: sum
+      - name: attribution_amount
+        description: Amount attributed to marketing
+        expr: ATTRIBUTION_AMOUNT
+        data_type: number
+        default_aggregation: sum
+      - name: engagement_flag
+        description: Indicator (1/0) that an engagement occurred
+        expr: ENGAGEMENT_FLAG
+        data_type: number
+        default_aggregation: sum
+      - name: normalized_opps
+        description: Normalized count of opportunities
+        expr: NORMALIZED_OPPS
+        data_type: number
+        default_aggregation: sum
+      - name: responses
+        description: Number of responses generated
+        expr: RESPONSES
+        data_type: number
+        default_aggregation: sum
+      - name: total_engagements
+        description: Total engagement count (alias for engagements)
+        expr: TOTAL_ENGAGEMENTS
+        data_type: number
+        default_aggregation: sum
+    primary_key:
+      columns:
+        - UNIQUE_ID
+verified_queries:
+  - name: total_accounts
+    question: How many total accounts do we have?
+    verified_at: 1730813400
+    verified_by: system
+    sql: SELECT COUNT(DISTINCT ACCOUNT_ID) as total_accounts FROM NAVIGATE_DB.PUBLIC.DEMO_ATTRIBUTION
+  - name: total_contacts
+    question: How many total contacts do we have?
+    verified_at: 1730813400
+    verified_by: system
+    sql: SELECT COUNT(DISTINCT INDIVIDUAL_ID) as total_contacts FROM NAVIGATE_DB.PUBLIC.DEMO_ATTRIBUTION
+  - name: total_engagements_count
+    question: What is the total number of engagements?
+    verified_at: 1730813400
+    verified_by: system
+    sql: SELECT COUNT(DISTINCT ENGAGEMENT_ID) as total_engagements FROM NAVIGATE_DB.PUBLIC.DEMO_ATTRIBUTION
+  - name: total_opportunities
+    question: How many opportunities do we have?
+    verified_at: 1730813400
+    verified_by: system
+    sql: SELECT COUNT(DISTINCT OPPORTUNITY_ID) as total_opportunities FROM NAVIGATE_DB.PUBLIC.DEMO_ATTRIBUTION
+  - name: won_deals_count
+    question: How many deals have we won?
+    verified_at: 1730813400
+    verified_by: system
+    sql: SELECT COUNT(DISTINCT OPPORTUNITY_ID) as won_deals FROM NAVIGATE_DB.PUBLIC.DEMO_ATTRIBUTION WHERE IS_WON = TRUE
+  - name: overall_win_rate
+    question: What is our overall win rate?
+    verified_at: 1730813400
+    verified_by: system
+    sql: |
+      SELECT ROUND(
+        COUNT(DISTINCT CASE WHEN IS_WON = TRUE THEN OPPORTUNITY_ID END) 
+        * 100.0 
+        / NULLIF(COUNT(DISTINCT CASE WHEN STAGE_NAME_NORMALZIED IN ('Closed Won','Closed Lost') THEN OPPORTUNITY_ID END),0), 1
+      ) as win_rate_pct
+      FROM NAVIGATE_DB.PUBLIC.DEMO_ATTRIBUTION
+  - name: top_engagement_channels
+    question: What are the top engagement channels?
+    verified_at: 1730813400
+    verified_by: system
+    sql: |
+      SELECT ENGAGEMENT_TYPE, COUNT(DISTINCT ENGAGEMENT_ID) as engagement_count 
+      FROM NAVIGATE_DB.PUBLIC.DEMO_ATTRIBUTION 
+      GROUP BY ENGAGEMENT_TYPE 
+      ORDER BY engagement_count DESC 
+      LIMIT 10
+  - name: accounts_by_industry
+    question: How many accounts do we have by industry?
+    verified_at: 1730813400
+    verified_by: system
+    sql: |
+      SELECT INDUSTRY, COUNT(DISTINCT ACCOUNT_ID) as account_count 
+      FROM NAVIGATE_DB.PUBLIC.DEMO_ATTRIBUTION 
+      GROUP BY INDUSTRY 
+      ORDER BY account_count DESC
+  - name: mqa_accounts
+    question: How many accounts meet MQA (>=3 touches)?
+    verified_at: 1730813400
+    verified_by: system
+    sql: |
+      SELECT COUNT(DISTINCT ACCOUNT_ID) as mqa_accounts 
+      FROM NAVIGATE_DB.PUBLIC.DEMO_ATTRIBUTION 
+      WHERE TOTAL_ENGAGEMENTS >= 3
+  - name: deals_by_stage
+    question: How many deals are in each stage?
+    verified_at: 1730813400
+    verified_by: system
+    sql: |
+      SELECT STAGE_NAME_NORMALZIED, COUNT(DISTINCT OPPORTUNITY_ID) as deal_count 
+      FROM NAVIGATE_DB.PUBLIC.DEMO_ATTRIBUTION 
+      GROUP BY STAGE_NAME_NORMALZIED 
+      ORDER BY deal_count DESC
+  - name: win_rate_by_engagement_level
+    question: What is the win rate by engagement level?
+    verified_at: 1730813400
+    verified_by: system
+    sql: |
+      SELECT
+        CASE 
+          WHEN TOTAL_ENGAGEMENTS <= 25 THEN '0-25' 
+          WHEN TOTAL_ENGAGEMENTS <= 50 THEN '26-50'
+          WHEN TOTAL_ENGAGEMENTS <= 100 THEN '51-100'
+          ELSE '>100'
+        END AS engagement_band,
+        ROUND(
+          COUNT(DISTINCT CASE WHEN IS_WON = TRUE THEN OPPORTUNITY_ID END) 
+          * 100.0 
+          / NULLIF(COUNT(DISTINCT CASE WHEN STAGE_NAME_NORMALZIED IN ('Closed Won','Closed Lost') THEN OPPORTUNITY_ID END),0), 1
+        ) as win_rate_pct
+      FROM NAVIGATE_DB.PUBLIC.DEMO_ATTRIBUTION
+      GROUP BY 1
+      ORDER BY 1
+  - name: win_rate_by_deal_size
+    question: What is the win rate by deal size category?
+    verified_at: 1730813400
+    verified_by: system
+    sql: |
+      SELECT
+        CASE 
+          WHEN AMOUNT < 50000 THEN '<50K'
+          WHEN AMOUNT < 100000 THEN '50K-100K'
+          ELSE '>100K'
+        END AS deal_size_band,
+        ROUND(
+          COUNT(DISTINCT CASE WHEN IS_WON = TRUE THEN OPPORTUNITY_ID END) 
+          * 100.0 
+          / NULLIF(COUNT(DISTINCT CASE WHEN STAGE_NAME_NORMALZIED IN ('Closed Won','Closed Lost') THEN OPPORTUNITY_ID END),0), 1
+        ) as win_rate_pct
+      FROM NAVIGATE_DB.PUBLIC.DEMO_ATTRIBUTION
+      GROUP BY 1
+      ORDER BY 1
+  - name: avg_deal_size_by_engagement_band
+    question: Average deal size for accounts with 26–50 vs 51–100 engagements?
+    verified_at: 1730813400
+    verified_by: system
+    sql: |
+      SELECT
+        CASE 
+          WHEN TOTAL_ENGAGEMENTS BETWEEN 26 AND 50 THEN '26-50 engagements'
+          WHEN TOTAL_ENGAGEMENTS BETWEEN 51 AND 100 THEN '51-100 engagements'
+          ELSE 'Other'
+        END AS engagement_band,
+        ROUND(AVG(AMOUNT), 2) as avg_deal_size
+      FROM NAVIGATE_DB.PUBLIC.DEMO_ATTRIBUTION
+      WHERE IS_WON = TRUE AND TOTAL_ENGAGEMENTS BETWEEN 26 AND 100
+      GROUP BY 1
+  - name: early_stage_funnel_fill
+    question: How many new opportunities entered early pipeline and their conversion rate?
+    verified_at: 1730813400
+    verified_by: system
+    sql: |
+      SELECT
+        COUNT(DISTINCT OPPORTUNITY_ID) AS new_open_opps,
+        ROUND(
+          100.0 * COUNT(DISTINCT CASE WHEN IS_WON = TRUE THEN OPPORTUNITY_ID END)
+          / NULLIF(COUNT(DISTINCT OPPORTUNITY_ID),0), 1
+        ) AS conversion_rate_pct
+      FROM NAVIGATE_DB.PUBLIC.DEMO_ATTRIBUTION
+      WHERE STAGE_NAME_NORMALZIED = 'Open' 
+        AND OPP_CREATED_DATE >= DATEADD(month, -3, CURRENT_DATE)
+  - name: accounts_approaching_MQA
+    question: Which accounts have 2 engagements (one short of the 3 needed for MQA)?
+    verified_at: 1730813400
+    verified_by: system
+    sql: |
+      SELECT DISTINCT ACCOUNT_ID, ACCOUNT_NAME, TOTAL_ENGAGEMENTS
+      FROM NAVIGATE_DB.PUBLIC.DEMO_ATTRIBUTION
+      WHERE TOTAL_ENGAGEMENTS = 2

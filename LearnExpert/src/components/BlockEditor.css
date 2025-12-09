@@ -1,0 +1,100 @@
+.blocks-container {
+  background: #fff;
+}
+
+.block-item {
+  position: relative;
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.block-item:hover {
+  border-color: #ddd;
+}
+
+.block-item.selected {
+  border-color: #007cba;
+  box-shadow: 0 0 0 1px #007cba;
+}
+
+.block-controls {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  display: flex;
+  gap: 5px;
+}
+
+.edit-icon, .delete-icon {
+  background: #007cba;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.delete-icon {
+  background: #dc3545;
+}
+
+.delete-icon:hover {
+  background: #c82333;
+}
+
+.empty-state {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  padding: 40px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .block-item {
+    margin-bottom: 15px;
+    padding: 8px;
+  }
+
+  .block-controls {
+    top: -8px;
+    right: -8px;
+  }
+
+  .edit-icon, .delete-icon {
+    padding: 3px 6px;
+    font-size: 11px;
+  }
+
+  .empty-state {
+    padding: 20px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .block-item {
+    margin-bottom: 10px;
+    padding: 6px;
+  }
+
+  .block-controls {
+    top: -6px;
+    right: -6px;
+    gap: 3px;
+  }
+
+  .edit-icon, .delete-icon {
+    padding: 2px 4px;
+    font-size: 10px;
+  }
+
+  .empty-state {
+    padding: 15px;
+    font-size: 13px;
+  }
+}

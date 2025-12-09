@@ -1,0 +1,23 @@
+# Environment Configuration
+NODE_ENV=development
+PORT=3002
+
+# Snowflake Database Configuration
+SNOWFLAKE_ACCOUNT=IXXBDIE-QFC75327
+SNOWFLAKE_USER=SA1717171
+SNOWFLAKE_ROLE=ACCOUNTADMIN
+SNOWFLAKE_WAREHOUSE=COMPUTE_WH
+SNOWFLAKE_STAGE=NAVIGATE_STAGE
+SNOWFLAKE_MODEL=navigate_model
+SNOWFLAKE_DATABASE=NAVIGATE_DB
+SNOWFLAKE_SCHEMA=PUBLIC
+
+# Path to private key file, NOT the key text
+SNOWFLAKE_PRIVATE_KEY_PATH=./keys/rsa_key.p8
+SNOWFLAKE_PRIVATE_KEY_PASSPHRASE=navigatekey
+
+# Application Configuration
+API_PREFIX=api/v1
+SWAGGER_TITLE=Navigate Chatbot API
+SWAGGER_DESCRIPTION=API for managing chatbot conversations with Snowflake integration
+SWAGGER_VERSION=1.0.0

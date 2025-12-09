@@ -5,7 +5,7 @@ import { faStar as solidStar, faHeart as solidHeart, faChevronDown } from '@fort
 import { faStar as regularStar, faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
 import TaskOptions from './TaskOptions';
 import TaskTextToggle from './TaskTextToggle';
-import Filters from './Filters';
+
 
 const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onToggleImportant, onChangeStatus, isLoadingTasks }) => {
   const isAdmin = localStorage.getItem('userRole') === 'admin';
@@ -124,12 +124,31 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
   const handleBulkStatusChange = async (newStatus) => {
     if (selectedTasks.length === 0) return;
 
-    for (const taskId of selectedTasks) {
-      const task = currentTasks.find(t => t.id === taskId);
-      if (task) {
-        await onChangeStatus(task, newStatus);
-      }
+    try {
+      const userId = JSON.parse(localStorage.getItem('taskly_user'))?.id;
+      const newDone = newStatus === 'Completed' ? 1 : 0;
+      
+      const updatePromises = selectedTasks.map(taskId => 
+        fetch(`${process.env.REACT_APP_API_URL}updateStatus.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            id: taskId, 
+            is_done: newDone, 
+            status: newStatus, 
+            user_id: userId 
+          })
+        })
+      );
+      
+      await Promise.all(updatePromises);
+      alert(`${selectedTasks.length} tasks updated to ${newStatus}!`);
+      window.location.reload();
+      
+    } catch (error) {
+      alert('Error updating task status');
     }
+    
     setSelectedTasks([]);
   };
 
@@ -243,12 +262,7 @@ const TodoListCard = ({ data, onEdit, onDelete, onDone, onToggleFavorite, onTogg
 
   return (
     <div className="container">
-      {!isAdmin && (
-        <Filters
-          onApply={handleFilterApply}
-          showUserFilter={false}
-        />
-      )}
+
 
       {/* Bulk Actions Bar */}
       {showBulkActions && (

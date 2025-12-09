@@ -1,0 +1,84 @@
+.wp-editor-container {
+  border: 1px solid #ddd;
+  background: #fff;
+}
+
+.wp-editor-tabs {
+  background: #f1f1f1;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.wp-editor-tab {
+  background: #f1f1f1;
+  border: none;
+  border-right: 1px solid #ddd;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #666;
+}
+
+.wp-editor-tab:hover {
+  background: #fafafa;
+}
+
+.wp-editor-tab.active {
+  background: #fff;
+  color: #333;
+  border-bottom: 1px solid #fff;
+  margin-bottom: -1px;
+}
+
+.wp-visual-editor .ql-toolbar {
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  background: #f9f9f9;
+  padding: 8px;
+}
+
+.wp-visual-editor .ql-container {
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  font-family: Georgia, serif;
+}
+
+.wp-visual-editor .ql-editor {
+  min-height: 300px;
+  padding: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.wp-text-editor {
+  width: 100%;
+  min-height: 300px;
+  border: none;
+  padding: 20px;
+  font-family: Consolas, Monaco, monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  resize: vertical;
+  outline: none;
+}
+
+.wp-visual-editor .ql-toolbar .ql-formats {
+  margin-right: 15px;
+}
+
+.wp-visual-editor .ql-toolbar button {
+  width: 28px;
+  height: 28px;
+}
+
+.wp-visual-editor .ql-toolbar button:hover {
+  color: #00a0d2;
+}
+
+.wp-visual-editor .ql-toolbar .ql-active {
+  color: #00a0d2;
+}
